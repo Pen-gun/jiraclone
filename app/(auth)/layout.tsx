@@ -1,13 +1,15 @@
-interface SignInLayoutProps {
+interface AuthLayoutProps {
     children: React.ReactNode;
 }
 
-const SignInLayout = ({ children }: SignInLayoutProps) => {
+const AuthLayout = ({ children }: AuthLayoutProps) => {
     return (
+        <>
+        <h1>Auth Layout</h1>
         <div className="min-h-screen flex items-center justify-center bg-gray-100">
-            <h1>Sign-in</h1>
             {children}
         </div>
-    );
+        </>
+    )
 }
-export default SignInLayout;
+export default AuthLayout;
