@@ -1,0 +1,102 @@
+Jira Clone Project Documentation
+
+Overview
+- Stack: Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS, shadcn/ui components.
+- Focus implemented so far: authentication UI with React Hook Form + Zod validation and shadcn Field primitives.
+
+Project Initialization
+1. Create project
+- Initialize a Next.js App Router project with TypeScript.
+
+2. UI setup
+- Configure shadcn/ui and generate base components used by auth pages.
+
+3. App structure
+- Auth pages are under app/(auth):
+	- sign-in page
+	- sign-up page
+
+Installed Dependencies (relevant)
+- next, react, react-dom
+- react-hook-form
+- zod
+- @hookform/resolvers
+- shadcn
+- class-variance-authority, clsx, tailwind-merge
+- lucide-react, react-icons
+- sonner
+
+Current Auth Form Implementation
+
+1. React Hook Form
+- useForm is used to create and manage form state.
+- Controller is used to bind custom Input components.
+
+2. Zod validation
+- Sign-in schema validates:
+	- email format
+	- password length constraints
+- Sign-up schema validates:
+	- email
+	- password
+	- confirmPassword
+	- password confirmation using refine with path ["confirmPassword"] so mismatch error shows under confirm password field.
+
+3. shadcn Field primitives in use
+- Using components/ui/field.tsx components:
+	- Field
+	- FieldGroup
+	- FieldError
+- This is a valid alternative to shadcn Form/FormMessage wrappers.
+
+4. Error display strategy
+- Per-field errors are rendered through FieldError and fieldState.error.
+- aria-invalid is set on invalid inputs for accessibility.
+- noValidate is set on forms to show schema-driven errors instead of browser default messages.
+
+5. Current submit behavior
+- onSubmit currently logs form data.
+- No backend call is implemented yet.
+
+What Is Complete
+- Client-side validation with React Hook Form + Zod.
+- Field-level error rendering via shadcn FieldError.
+- Password mismatch error shown on confirmPassword field.
+
+What Is Not Complete Yet
+1. Server-side signup submission
+- Need API endpoint or server action for creating user accounts.
+
+2. Server/API error handling
+- Need try/catch in submit.
+- Need mapping of API field errors to form.setError.
+- Need generic top-level error message for unknown failures.
+
+3. Pending UI states
+- Disable submit while form is submitting.
+- Optional loading text (for example: "Signing up...").
+
+Recommended Next Steps
+1. Implement signup API
+- Create a backend route (for example app/api/auth/sign-up/route.ts) or server action.
+- Return structured response with:
+	- success boolean
+	- optional message
+	- optional fieldErrors object
+
+2. Wire submit handler in sign-up component
+- Make onSubmit async.
+- Call API with email and password.
+- On known field errors, call form.setError("email" or "password").
+- On unknown errors, show a generic message near the top of the form.
+
+3. Add robust UX
+- Use form.formState.isSubmitting to disable button and prevent duplicate submissions.
+
+Quick Status Summary
+- Sign-in: client validation done.
+- Sign-up: client validation done, confirm password mismatch handling done.
+- Full production-ready signup flow: pending server submission + API error handling.
+
+
+
