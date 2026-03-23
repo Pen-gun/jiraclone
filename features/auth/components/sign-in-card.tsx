@@ -38,7 +38,7 @@ export const SignInCard = () => {
         },
     });
     const onSubmit = (data: z.infer<typeof signInFormSchema>) => {
-        showJsonToast("Form submitted successfully!", data);
+        showJsonToast("Sign in successful!", data);
 
     };
     return (

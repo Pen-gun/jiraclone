@@ -45,8 +45,8 @@ export const SignUpCard = () => {
             confirmPassword: ''
         }
     })
-    const onsubmit = (data: z.infer<typeof signUpFormSchema>)=>{
-        showJsonToast("Form submitted successfully!", data);
+    const onsubmit = (data: z.infer<typeof signUpFormSchema>)=>{showJsonToast("Form submitted successfully!", {email: data.email, password: "*********"});
+        
     }
     return (
         <Card className="w-full h-full md:w-121.7 border-none shadow-none" >
