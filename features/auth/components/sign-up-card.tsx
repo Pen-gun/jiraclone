@@ -21,7 +21,13 @@ const signUpFormSchema = z.object({
     email: z.email(),
     password: z.string()
     .min(6)
-    .max(100)
+    .max(100),
+    confirmPassword: z.string()
+    .min(6)
+    .max(100),
+}).refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
 })
 
 export const SignUpCard = () => {
@@ -29,7 +35,8 @@ export const SignUpCard = () => {
         resolver: zodResolver(signUpFormSchema),
         defaultValues: {
             email: '',
-            password: ''
+            password: '',
+            confirmPassword: ''
         }
     })
     const onsubmit = (data: z.infer<typeof signUpFormSchema>)=>{
@@ -86,6 +93,25 @@ export const SignUpCard = () => {
                                         {...field}
                                         type="password"
                                         placeholder="Password"
+                                        aria-invalid={fieldState.invalid}
+                                    />
+                                    {fieldState.error &&(
+                                        <p className="text-red-500 text-sm mt-1">
+                                            {fieldState.error.message}
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+                        />
+                        <Controller
+                            name='confirmPassword'
+                            control={form.control}
+                            render={({field,fieldState})=>(
+                                <div data-invalid = {fieldState.invalid}>
+                                    <Input
+                                        {...field}
+                                        type="password"
+                                        placeholder="Confirm Password"
                                         aria-invalid={fieldState.invalid}
                                     />
                                     {fieldState.error &&(
