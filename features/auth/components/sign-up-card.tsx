@@ -11,11 +11,30 @@ import {
     CardTitle,
  } from "@/components/ui/card";
 import {Input} from "@/components/ui/input";
-import { useState } from "react";
 import Link from "next/link";
 
+import {z} from "zod";
+import {Controller, useForm} from "react-hook-form";
+import {zodResolver} from "@hookform/resolvers/zod";
+
+const signUpFormSchema = z.object({
+    email: z.email(),
+    password: z.string()
+    .min(6)
+    .max(100)
+})
+
 export const SignUpCard = () => {
-    const [email, setEmail] = useState("");
+    const form = useForm<z.infer<typeof signUpFormSchema>>({
+        resolver: zodResolver(signUpFormSchema),
+        defaultValues: {
+            email: '',
+            password: ''
+        }
+    })
+    const onsubmit = (data: z.infer<typeof signUpFormSchema>)=>{
+        console.log("submitted data:", data)
+    }
     return (
         <Card className="w-full h-full md:w-121.7 border-none shadow-none" >
             <CardHeader className="flex flex-col items-center justify-center pt-10">
@@ -37,25 +56,50 @@ export const SignUpCard = () => {
                 <DottedSeparator />
             </div>
             <CardContent className="p-7">
-                <form className="space-y-4">
-                    <Input
-                        required
-                        type="email"
-                        placeholder="Email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        disabled={false}
-                    />
-                    <Input
-                        required
-                        type="password"
-                        placeholder="Password"
-                        disabled={false}
-                    />
-                    <Button type="submit" className="w-full">
-                        Sign up
-                    </Button>
-                </form>
+                    <form noValidate className="space-y-4" onSubmit={form.handleSubmit(onsubmit)}>
+                        <Controller
+                            name='email'
+                            control={form.control}
+                            render={({field,fieldState})=>(
+                                <div data-invalid = {fieldState.invalid}>
+                                    <Input
+                                        {...field}
+                                        type="email"
+                                        placeholder="Email"
+                                        aria-invalid={fieldState.invalid}
+                                        autoComplete="email"
+                                    />
+                                    {fieldState.error &&(
+                                        <p className="text-red-500 text-sm mt-1">
+                                            {fieldState.error.message}
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+                        />
+                        <Controller
+                            name='password'
+                            control={form.control}
+                            render={({field,fieldState})=>(
+                                <div data-invalid = {fieldState.invalid}>
+                                    <Input
+                                        {...field}
+                                        type="password"
+                                        placeholder="Password"
+                                        aria-invalid={fieldState.invalid}
+                                    />
+                                    {fieldState.error &&(
+                                        <p className="text-red-500 text-sm mt-1">
+                                            {fieldState.error.message}
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+                        />
+                        <Button type="submit" className="w-full">
+                            Sign up
+                        </Button>
+                    </form>
                 
             </CardContent>
             <div className="px-7 mb-2">

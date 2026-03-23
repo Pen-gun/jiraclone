@@ -8,12 +8,14 @@ import {
     CardContent,
     CardHeader,
     CardTitle,
+    CardDescription
  } from "@/components/ui/card";
 import {Input} from "@/components/ui/input";
 
 import {z} from "zod";
 import {Controller, useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
+import Link from 'next/link'
 
 const signInFormSchema = z.object({
     email: z.email("Invalid email address"),
@@ -38,6 +40,16 @@ export const SignInCard = () => {
                 <CardTitle className="text-2xl font-bold text-center mb-4">
                     Welcome my friend
                 </CardTitle>
+                <CardDescription>
+                    Read out{" "}
+                    <Link href="/terms">
+                        <span className="text-blue-500 hover:underline">Terms of Service</span>
+                    </Link>
+                    {" "}and{" "}
+                    <Link href="/privacy">
+                        <span className="text-blue-500 hover:underline">Privacy Policy.</span>
+                    </Link>  
+                </CardDescription>
             </CardHeader>
             <div className="px-7 mb-2">
                 <DottedSeparator />
@@ -50,11 +62,10 @@ export const SignInCard = () => {
                         render={({ field,fieldState }) => (
                             <div data-invalid={fieldState.invalid}>
                                 <Input
-                                    id='semail'
                                     type="email"
                                     placeholder="Email"
                                     {...field}
-                                    arial-invalid={fieldState.invalid}
+                                    aria-invalid={fieldState.invalid}
                                     autoComplete="email"
                                 />
                                 {fieldState.error && (
@@ -71,11 +82,10 @@ export const SignInCard = () => {
                         render={({ field,fieldState }) => (
                             <div data-invalid={fieldState.invalid}>
                                 <Input
-                                    id='spassword'
                                     type="password"
                                     placeholder="Password"
                                     {...field}
-                                    arial-invalid={fieldState.invalid}
+                                    aria-invalid={fieldState.invalid}
                                     autoComplete="current-password"
                                 />
                                 {fieldState.error && (
