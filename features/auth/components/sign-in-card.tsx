@@ -110,24 +110,26 @@ export const SignInCard = () => {
                     <DottedSeparator />
             </div>
             <CardContent className="p-7 flex flex-col gap-y-4">
-                <Button
-                    disabled={false}
-                    variant="secondary"
-                    size='lg'
-                    className="w-full"
-                    >
-                    <FcGoogle className="mr-2" />
-                    Login with Google
-                </Button>
-                <Button
-                    disabled={false}
-                    variant="secondary"
-                    size='lg'
-                    className="w-full"
-                    >
-                    <FaGithub className="mr-2" />
-                    Login with Github
-                </Button>
+                <Field>
+                    <Button
+                        disabled={false}
+                        variant="secondary"
+                        size='lg'
+                        className="w-full"
+                        >
+                        <FcGoogle className="mr-2" />
+                        Login with Google
+                    </Button>
+                    <Button
+                        disabled={false}
+                        variant="secondary"
+                        size='lg'
+                        className="w-full"
+                        >
+                        <FaGithub className="mr-2" />
+                        Login with Github
+                    </Button>
+                </Field>
             </CardContent>
         </Card>
     );
