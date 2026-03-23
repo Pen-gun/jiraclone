@@ -10,6 +10,11 @@ import {
     CardTitle,
     CardDescription
  } from "@/components/ui/card";
+ import {
+  Field,
+  FieldError,
+  FieldGroup,
+} from "@/components/ui/field"
 import {Input} from "@/components/ui/input";
 
 import {z} from "zod";
@@ -56,11 +61,12 @@ export const SignInCard = () => {
             </div>
             <CardContent className="p-7">
                 <form noValidate className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
+                    <FieldGroup>
                     <Controller
                         name="email"
                         control={form.control}
                         render={({ field,fieldState }) => (
-                            <div data-invalid={fieldState.invalid}>
+                            <Field data-invalid={fieldState.invalid}>
                                 <Input
                                     type="email"
                                     placeholder="Email"
@@ -69,18 +75,16 @@ export const SignInCard = () => {
                                     autoComplete="email"
                                 />
                                 {fieldState.error && (
-                                    <p className="text-red-500 text-sm mt-1">
-                                        {fieldState.error.message}
-                                    </p>
+                                    <FieldError errors={[fieldState.error]}/>
                                 )}
-                            </div>
+                            </Field>
                         )}
                     />
                     <Controller
                         name="password"
                         control={form.control}
                         render={({ field,fieldState }) => (
-                            <div data-invalid={fieldState.invalid}>
+                            <Field data-invalid={fieldState.invalid}>
                                 <Input
                                     type="password"
                                     placeholder="Password"
@@ -89,17 +93,17 @@ export const SignInCard = () => {
                                     autoComplete="current-password"
                                 />
                                 {fieldState.error && (
-                                    <p className="text-red-500 text-sm mt-1">
-                                        {fieldState.error.message}
-                                    </p>
+                                    <FieldError errors={[fieldState.error]}/>
                                 )}
-                            </div>
+                            </Field>
                         )}
                     />      
                     <Button type="submit" className="w-full">
                         Sign In
                     </Button>
+                    </FieldGroup>
                 </form>
+              
                 
             </CardContent>
             <div className="px-7 mb-2">

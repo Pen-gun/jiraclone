@@ -10,6 +10,11 @@ import {
     CardHeader,
     CardTitle,
  } from "@/components/ui/card";
+ import {
+  Field,
+  FieldError,
+  FieldGroup,
+} from "@/components/ui/field";
 import {Input} from "@/components/ui/input";
 import Link from "next/link";
 
@@ -64,11 +69,12 @@ export const SignUpCard = () => {
             </div>
             <CardContent className="p-7">
                     <form noValidate className="space-y-4" onSubmit={form.handleSubmit(onsubmit)}>
+                        <FieldGroup>
                         <Controller
                             name='email'
                             control={form.control}
                             render={({field,fieldState})=>(
-                                <div data-invalid = {fieldState.invalid}>
+                                <Field data-invalid = {fieldState.invalid}>
                                     <Input
                                         {...field}
                                         type="email"
@@ -77,18 +83,16 @@ export const SignUpCard = () => {
                                         autoComplete="email"
                                     />
                                     {fieldState.error &&(
-                                        <p className="text-red-500 text-sm mt-1">
-                                            {fieldState.error.message}
-                                        </p>
+                                        <FieldError errors={[fieldState.error]}/>
                                     )}
-                                </div>
+                                </Field>
                             )}
                         />
                         <Controller
                             name='password'
                             control={form.control}
                             render={({field,fieldState})=>(
-                                <div data-invalid = {fieldState.invalid}>
+                                <Field data-invalid = {fieldState.invalid}>
                                     <Input
                                         {...field}
                                         type="password"
@@ -96,18 +100,16 @@ export const SignUpCard = () => {
                                         aria-invalid={fieldState.invalid}
                                     />
                                     {fieldState.error &&(
-                                        <p className="text-red-500 text-sm mt-1">
-                                            {fieldState.error.message}
-                                        </p>
+                                        <FieldError errors={[fieldState.error]}/>
                                     )}
-                                </div>
+                                </Field>
                             )}
                         />
                         <Controller
                             name='confirmPassword'
                             control={form.control}
                             render={({field,fieldState})=>(
-                                <div data-invalid = {fieldState.invalid}>
+                                <Field data-invalid = {fieldState.invalid}>
                                     <Input
                                         {...field}
                                         type="password"
@@ -115,16 +117,15 @@ export const SignUpCard = () => {
                                         aria-invalid={fieldState.invalid}
                                     />
                                     {fieldState.error &&(
-                                        <p className="text-red-500 text-sm mt-1">
-                                            {fieldState.error.message}
-                                        </p>
+                                        <FieldError errors={[fieldState.error]}/>
                                     )}
-                                </div>
+                                </Field>
                             )}
                         />
                         <Button type="submit" className="w-full">
                             Sign up
                         </Button>
+                        </FieldGroup>
                     </form>
                 
             </CardContent>
