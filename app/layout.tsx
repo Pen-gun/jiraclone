@@ -3,6 +3,7 @@ import {Inter, Geist } from "next/font/google";
 import "./globals.css";
 
 import { cn } from "@/lib/utils";
+import { Toaster } from "@/components/ui/sonner";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -23,7 +24,10 @@ export default function RootLayout({
       lang="en"
       className={cn(inter.className, "antialiased min-h-screen", "font-sans", geist.variable)}
     >
-      <body className="min-h-full">{children}</body>
+      <body className="min-h-full">
+        {children}
+        <Toaster richColors closeButton />
+      </body>
     </html>
   );
 }

@@ -3,6 +3,7 @@ import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa";
 import { DottedSeparator } from "@/components/dotted-seperator";
 import { Button } from "@/components/ui/button";
+import { showJsonToast } from "@/components/toaster";
 import { 
     Card,
     CardContent,
@@ -45,7 +46,7 @@ export const SignUpCard = () => {
         }
     })
     const onsubmit = (data: z.infer<typeof signUpFormSchema>)=>{
-        console.log("submitted data:", data)
+        showJsonToast("Form submitted successfully!", data);
     }
     return (
         <Card className="w-full h-full md:w-121.7 border-none shadow-none" >
