@@ -2,6 +2,12 @@ import { Hono} from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import { signInFormSchema, signUpFormSchema, onBoardingFormSchema } from '@/features/schemas'
 import { prisma} from '@/lib/prismaHelper'
+import {
+    clearAuthCookie,
+    createAuthToken,
+    getCurrentUserId,
+    setAuthCookie,
+} from '@/lib/auth-token'
 
 const app = new Hono()
 .post("/login", 
@@ -20,6 +26,13 @@ const app = new Hono()
                 return c.json({ error: "Invalid email or password" }, 401);
             }
         console.log("Received login request with email:", email);
+
+        const token = await createAuthToken({
+            userId: user.id,
+            email: user.email,
+            onBoardingCompleted: user.onBoardingCompleted,
+        });
+        setAuthCookie(c, token);
         
         const { password: _password, ...safeUser } = user;
         return c.json(safeUser, 200);
@@ -30,28 +43,42 @@ const app = new Hono()
     async (c)=>{
         const { email, password} = c.req.valid("json");
         try {
-            await prisma.user.create({
+            const user = await prisma.user.create({
                 data: {
                     email,
                     password,
                     onBoardingCompleted: false,
                 }
-            })
+            });
+
+            const token = await createAuthToken({
+                userId: user.id,
+                email: user.email,
+                onBoardingCompleted: user.onBoardingCompleted,
+            });
+            setAuthCookie(c, token);
+
+            const { password: _password, ...safeUser } = user;
+            console.log("Received registration request with email:", email);
+            return c.json(safeUser, 201);
         } catch (error) {
             console.error("Registration error:", error);
             return c.json({ error: "Failed to register user" }, 500);
         }
-        console.log("Received registration request with email:", email);
-        return c.json({email}, 201);
     }
 )
 .post("/onboarding",
     zValidator("json", onBoardingFormSchema),
     async (c) => {
         const { fullName, age, bio } = c.req.valid("json");
+        const userId = await getCurrentUserId(c);
+        if (!userId) {
+            return c.json({ error: "Unauthorized" }, 401);
+        }
+
             try {
                 const user = await prisma.user.update({
-                where: { email },
+                where: { id: userId },
                 data: {
                     fullName,
                     age,
@@ -59,6 +86,13 @@ const app = new Hono()
                     onBoardingCompleted: true,
                 },
                 });
+
+                const Token = await createAuthToken({
+                    userId: user.id,
+                    email: user.email,
+                    onBoardingCompleted: user.onBoardingCompleted,
+                });
+                setAuthCookie(c, Token);
 
                 console.log("Updated onboarding for:", user.email);
 
@@ -74,5 +108,9 @@ const app = new Hono()
             }
             }
 )
+.post("/logout", async (c) => {
+    clearAuthCookie(c);
+    return c.json({ message: "Logged out successfully" }, 200);
+})
 
 export default app;
