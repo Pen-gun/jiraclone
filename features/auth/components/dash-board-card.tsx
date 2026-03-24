@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 import { DottedSeparator } from "@/components/dotted-seperator";
 import { Button } from "@/components/ui/button";
+import { showJsonToast } from "@/components/toaster";
 import {
 	Card,
 	CardContent,
@@ -14,16 +15,31 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { useDashboard } from "@/features/api/use-dashboard";
+import { useLogout } from "@/features/api/use-logout";
 
 const DashboardCard = () => {
 	const router = useRouter();
 	const { data: user, isError } = useDashboard();
+	const { mutate: logout, isPending: isLoggingOut } = useLogout();
 
 	useEffect(() => {
 		if (isError) {
 			router.push("/sign-in");
 		}
 	}, [isError, router]);
+
+	const handleLogout = () => {
+		logout(undefined, {
+			onSuccess: () => {
+				router.push("/sign-in");
+			},
+			onError: (error) => {
+				showJsonToast("Logout failed", {
+					message: error.message,
+				});
+			},
+		});
+	};
 
 	if (!user) {
 		return (
@@ -80,8 +96,14 @@ const DashboardCard = () => {
 						<Button asChild variant="secondary" className="flex-1">
 							<Link href="/onboarding">Edit Profile</Link>
 						</Button>
-						<Button asChild variant="outline" className="flex-1">
-							<Link href="/sign-in">Logout</Link>
+						<Button
+							type="button"
+							variant="outline"
+							className="flex-1"
+							disabled={isLoggingOut}
+							onClick={handleLogout}
+						>
+							{isLoggingOut ? "Logging out..." : "Logout"}
 						</Button>
 					</div>
 				</div>
