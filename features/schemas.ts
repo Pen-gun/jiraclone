@@ -16,3 +16,10 @@ export const signUpFormSchema = z.object({
     message: "Passwords don't match",
     path: ["confirmPassword"],
 })
+
+export const onBoardingFormSchema = z.object({
+    fullName: z.string().min(1, "Full name is required").max(100, "Full name must be less than 100 characters long"),
+    age: z.number().min(0, "Age must be a positive number").max(120, "Age must be less than 120"),
+    bio: z.string().max(500, "Bio must be less than 500 characters long").optional(),
+    interests: z.array(z.string()).optional(),
+})

@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/field";
 import {Input} from "@/components/ui/input";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import {z} from "zod";
 import {Controller, useForm} from "react-hook-form";
@@ -26,6 +27,7 @@ import { signUpFormSchema } from "@/features/schemas";
 import { useRegister } from "@/features/api/use-register";
 
 export const SignUpCard = () => {
+    const router = useRouter();
     const {mutate} = useRegister();
     const form = useForm<z.infer<typeof signUpFormSchema>>({
         resolver: zodResolver(signUpFormSchema),
@@ -36,12 +38,20 @@ export const SignUpCard = () => {
         }
     })
     const onsubmit = (data: z.infer<typeof signUpFormSchema>)=>{
-        try {
-            mutate({json: data});
-            showJsonToast("Form submitted successfully!", {email: data.email, password: "*********"});
-        } catch (error) {
-            showJsonToast("Error occurred while submitting form.", error instanceof Error ? { message: error.message } : undefined);
-        } 
+        mutate({json: data},
+            {
+                onSuccess: () => {
+                    showJsonToast("Registration successful!", { email: data.email });
+                    router.push("/onboarding");
+                },
+                onError: (error) => {
+                    showJsonToast(
+                        "Registration failed",
+                        error instanceof Error ? { message: error.message } : undefined
+                    );
+                },
+            }
+        );
     };
     return (
         <Card className="w-full h-full md:w-121.7 border-none shadow-none" >

@@ -1,6 +1,6 @@
 import { Hono} from 'hono'
 import { zValidator } from '@hono/zod-validator'
-import { signInFormSchema, signUpFormSchema } from '@/features/schemas'
+import { signInFormSchema, signUpFormSchema, onBoardingFormSchema } from '@/features/schemas'
 
 const app = new Hono()
 .post("/login", 
@@ -17,4 +17,13 @@ const app = new Hono()
         console.log("Received registration request with email:", email);
     return c.json({email, password})
 })
+.post("/onboarding",
+    zValidator("json", onBoardingFormSchema),
+    (c)=>{
+        const { fullName, age, bio, interests } = c.req.valid("json");
+        console.log("Received onboarding request with full name:", fullName);
+        return c.json({ fullName, age, bio, interests });
+    }
+)
+
 export default app;
