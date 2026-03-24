@@ -22,9 +22,11 @@ import {Controller, useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import { onBoardingFormSchema } from "@/features/schemas";
 import { useOnboarding } from "@/features/api/use-onboarding";
+import { useRouter } from "next/navigation";
 
 
 export const OnBoardingCard = () => {
+    const router = useRouter();
     const {mutate} = useOnboarding();
 
     const form = useForm<z.infer<typeof onBoardingFormSchema>>({
@@ -38,6 +40,7 @@ export const OnBoardingCard = () => {
     const onSubmit = (data: z.infer<typeof onBoardingFormSchema>) => {
         mutate({ json: data });
         showJsonToast("Onboarding successful!", data);
+        router.push("/dashBoard");
     };
     return (
         <Card className="w-full h-full md:w-121.7 border-none shadow-none" >

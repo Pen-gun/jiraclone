@@ -112,5 +112,19 @@ const app = new Hono()
     clearAuthCookie(c);
     return c.json({ message: "Logged out successfully" }, 200);
 })
+.get("/me", async (c) => {
+    const userId = await getCurrentUserId(c);
+    if (!userId) {
+        return c.json({ error: "Unauthorized" }, 401);
+    }
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+    });
+    if (!user) {
+        return c.json({ error: "User not found" }, 404);
+    }
+    const { password, ...safeUser } = user;
+    return c.json(safeUser, 200);
+});
 
 export default app;
