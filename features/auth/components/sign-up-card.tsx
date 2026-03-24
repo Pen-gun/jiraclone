@@ -23,8 +23,10 @@ import {z} from "zod";
 import {Controller, useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import { signUpFormSchema } from "@/features/schemas";
+import { useRegister } from "@/features/api/use-register";
 
 export const SignUpCard = () => {
+    const {mutate} = useRegister();
     const form = useForm<z.infer<typeof signUpFormSchema>>({
         resolver: zodResolver(signUpFormSchema),
         defaultValues: {
@@ -33,9 +35,14 @@ export const SignUpCard = () => {
             confirmPassword: ''
         }
     })
-    const onsubmit = (data: z.infer<typeof signUpFormSchema>)=>{showJsonToast("Form submitted successfully!", {email: data.email, password: "*********"});
-        
-    }
+    const onsubmit = (data: z.infer<typeof signUpFormSchema>)=>{
+        try {
+            mutate({json: data});
+            showJsonToast("Form submitted successfully!", {email: data.email, password: "*********"});
+        } catch (error) {
+            showJsonToast("Error occurred while submitting form.", error instanceof Error ? { message: error.message } : undefined);
+        } 
+    };
     return (
         <Card className="w-full h-full md:w-121.7 border-none shadow-none" >
             <CardHeader className="flex flex-col items-center justify-center pt-10">
