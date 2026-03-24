@@ -23,9 +23,12 @@ import {Controller, useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import Link from 'next/link'
 import { signInFormSchema } from "@/features/schemas";
+import { useLogin } from "@/features/api/use-login";
 
 
 export const SignInCard = () => {
+    const {mutate} = useLogin();
+
     const form = useForm<z.infer<typeof signInFormSchema>>({
         resolver: zodResolver(signInFormSchema),
         defaultValues: {
@@ -34,6 +37,7 @@ export const SignInCard = () => {
         },
     });
     const onSubmit = (data: z.infer<typeof signInFormSchema>) => {
+        mutate({ json: data });
         showJsonToast("Sign in successful!", data);
 
     };
