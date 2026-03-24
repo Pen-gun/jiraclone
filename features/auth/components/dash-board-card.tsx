@@ -17,7 +17,7 @@ import { useDashboard } from "@/features/api/use-dashboard";
 
 const DashboardCard = () => {
 	const router = useRouter();
-	const { data: user, isLoading, isError } = useDashboard();
+	const { data: user, isError } = useDashboard();
 
 	useEffect(() => {
 		if (isError) {
@@ -25,12 +25,12 @@ const DashboardCard = () => {
 		}
 	}, [isError, router]);
 
-	if (isLoading || !user) {
+	if (!user) {
 		return (
 			<Card className="w-full h-full md:w-121.7 border-none shadow-none">
 				<CardHeader className="flex flex-col items-center justify-center pt-10">
 					<CardTitle className="text-2xl font-bold text-center mb-4">
-						Loading your dashboard...
+						No user data available
 					</CardTitle>
 				</CardHeader>
 			</Card>
