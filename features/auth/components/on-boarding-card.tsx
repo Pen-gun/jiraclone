@@ -32,14 +32,12 @@ export const OnBoardingCard = () => {
         defaultValues: {
             fullName: "",
             age: 0,
-            bio: "",
-            interests: []
+            bio: ""
         },
     });
     const onSubmit = (data: z.infer<typeof onBoardingFormSchema>) => {
         mutate({ json: data });
         showJsonToast("Onboarding successful!", data);
-
     };
     return (
         <Card className="w-full h-full md:w-121.7 border-none shadow-none" >
@@ -109,37 +107,12 @@ export const OnBoardingCard = () => {
                             </Field>
                         )}
                     />
-                    <Controller
-                        name="interests"
-                        control={form.control}
-                        render={({ field,fieldState }) => (
-                            <Field data-invalid={fieldState.invalid}>
-                                <Input
-                                    type="text"
-                                    placeholder="Interests (comma-separated)"
-                                    value={field.value?.join(", ") ?? ""}
-                                    onChange={(e) => {
-                                        const interests = e.target.value
-                                            .split(",")
-                                            .map((item) => item.trim())
-                                            .filter(Boolean);
-                                        field.onChange(interests);
-                                    }}
-                                    aria-invalid={fieldState.invalid}
-                                />
-                                {fieldState.error && (
-                                    <FieldError errors={[fieldState.error]}/>
-                                )}
-                            </Field>
-                        )}
-                    />
                     <Button type="submit" className="w-full">
                         Continue
                     </Button>
                     </FieldGroup>
                 </form>
-              
-                
+
             </CardContent>
             <div className="px-7 mb-2">
                     <DottedSeparator />

@@ -20,9 +20,9 @@ const app = new Hono()
 .post("/onboarding",
     zValidator("json", onBoardingFormSchema),
     (c)=>{
-        const { fullName, age, bio, interests } = c.req.valid("json");
+        const { fullName, age, bio} = c.req.valid("json");
         console.log("Received onboarding request with full name:", fullName);
-        return c.json({ fullName, age, bio, interests });
+        return c.json({ fullName, age, bio });
     }
 )
 
