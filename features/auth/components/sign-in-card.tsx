@@ -37,9 +37,12 @@ export const SignInCard = () => {
         },
     });
     const onSubmit = (data: z.infer<typeof signInFormSchema>) => {
-        mutate({ json: data });
-        showJsonToast("Sign in successful!", data);
-
+        try {
+            mutate({ json: data });
+            showJsonToast("Sign in successful!", data);
+        } catch (error) {
+            showJsonToast("Error occurred while signing in.", error instanceof Error ? { message: error.message } : undefined);
+        }
     };
     return (
         <Card className="w-full h-full md:w-121.7 border-none shadow-none" >

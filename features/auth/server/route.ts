@@ -6,6 +6,8 @@ const app = new Hono()
 .post("/login", 
     zValidator("json", signInFormSchema), 
     (c)=>{
-    return c.json({message:"Login successful"})
+        const { email, password} = c.req.valid("json");
+        console.log("Received login request with email:", email);
+    return c.json({email, password})
 })
 export default app;

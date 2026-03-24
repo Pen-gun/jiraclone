@@ -20,12 +20,6 @@ export default function Home() {
       <Button variant='link'>
         Link
       </Button>
-      <Button variant='muted'>
-        Muted
-      </Button>
-      <Button variant='teritary'>
-        Teritary
-      </Button>
     </div>   
   )
 }
