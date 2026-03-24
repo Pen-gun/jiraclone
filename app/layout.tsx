@@ -4,6 +4,7 @@ import "./globals.css";
 
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
+import { QueryProviders } from "@/components/query-provider";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -25,8 +26,10 @@ export default function RootLayout({
       className={cn(inter.className, "antialiased min-h-screen", "font-sans", geist.variable)}
     >
       <body className="min-h-full">
-        {children}
-        <Toaster richColors closeButton />
+        <QueryProviders>
+          {children}
+          <Toaster richColors closeButton />
+        </QueryProviders>
       </body>
     </html>
   );

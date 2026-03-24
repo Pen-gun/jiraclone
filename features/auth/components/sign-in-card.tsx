@@ -22,13 +22,9 @@ import {z} from "zod";
 import {Controller, useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import Link from 'next/link'
+import { signInFormSchema } from "@/features/schemas";
 
-const signInFormSchema = z.object({
-    email: z.email("Invalid email address"),
-    password: z.string()
-    .min(1, "Password is required")
-    .max(100, "Password must be less than 100 characters long"),
-});
+
 export const SignInCard = () => {
     const form = useForm<z.infer<typeof signInFormSchema>>({
         resolver: zodResolver(signInFormSchema),
@@ -43,7 +39,7 @@ export const SignInCard = () => {
     };
     return (
         <Card className="w-full h-full md:w-121.7 border-none shadow-none" >
-            <CardHeader className="flex items-center justify-center pt-10">
+            <CardHeader className="flex flex-col items-center justify-center pt-10">
                 <CardTitle className="text-2xl font-bold text-center mb-4">
                     Welcome my friend
                 </CardTitle>

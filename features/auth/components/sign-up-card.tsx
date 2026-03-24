@@ -22,19 +22,7 @@ import Link from "next/link";
 import {z} from "zod";
 import {Controller, useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
-
-const signUpFormSchema = z.object({
-    email: z.email(),
-    password: z.string()
-    .min(6)
-    .max(100),
-    confirmPassword: z.string()
-    .min(6)
-    .max(100),
-}).refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
-})
+import { signUpFormSchema } from "@/features/schemas";
 
 export const SignUpCard = () => {
     const form = useForm<z.infer<typeof signUpFormSchema>>({
