@@ -1,37 +1,11 @@
-import { Context, Hono } from 'hono'
+import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import { signInFormSchema, signUpFormSchema, onBoardingFormSchema } from '@/features/schemas'
 import { prisma } from '@/lib/prismaHelper'
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
 import { AUTH_COOKIE_NAME } from '../constant'
+import { sessionMiddleware} from '@/lib/session-middelware'
 
-
-
-const getAuthUser = async (c: Context) => {
-    const sessionId = getCookie(c, AUTH_COOKIE_NAME)
-    if (!sessionId) return null
-
-    const session = await prisma.session.findUnique({
-        where: { id: sessionId },
-    })
-
-    if (!session) return null;
-
-    if (session.expiresAt < new Date()) {
-        await prisma.session.delete({
-            where: { id: sessionId },
-        });
-        return null;
-    }
-
-    const user = await prisma.user.findUnique({
-        where: { id: session.userId },
-    })
-
-    if (!user) return null
-
-    return user
-}
 
 const app = new Hono()
     .post("/login",
@@ -103,16 +77,11 @@ const app = new Hono()
             }
         }
     )
-    .post("/onboarding",
+    .post("/onboarding", sessionMiddleware,
         zValidator("json", onBoardingFormSchema),
         async (c) => {
             const { fullName, age, bio } = c.req.valid("json");
-            const user = await getAuthUser(c);
-            if (!user) {
-                return c.json({ error: "Unauthorized" }, 401);
-            }
-
-
+            const user = c.get("account");
             try {
                 const updatedUser = await prisma.user.update({
                     where: { id: user.id },
@@ -137,7 +106,7 @@ const app = new Hono()
             }
         }
     )
-    .post("/logout", async (c) => {
+    .post("/logout",sessionMiddleware, async (c) => {
         const sessionId = getCookie(c, AUTH_COOKIE_NAME);
         if (sessionId) {
             await prisma.session.delete({
@@ -149,13 +118,12 @@ const app = new Hono()
         });
         return c.json({ message: "Logged out successfully" }, 200);
     })
-    .get("/me", async (c) => {
-        const user = await getAuthUser(c);
+    .get("/me", sessionMiddleware, async (c) => {
+        const user = c.get("account");
         if (!user) {
             return c.json({ error: "Unauthorized" }, 401);
         }
-        const { password, ...safeUser } = user;
-        return c.json(safeUser, 200);
+        return c.json(user, 200);
     });
 
 export default app;
