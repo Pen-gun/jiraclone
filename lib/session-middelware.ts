@@ -15,7 +15,7 @@ type Account = {
 
 
 export const sessionMiddleware = createMiddleware<{ Variables: {account: Account} }>(async (c, next) => {
-    const session = getCookie(c, AUTH_COOKIE_NAME);
+    const session = await getCookie(c, AUTH_COOKIE_NAME);
     if (!session) {
         return c.json({ error: "Unauthorized" }, 401);
     }

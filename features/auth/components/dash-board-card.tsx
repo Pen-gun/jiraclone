@@ -11,6 +11,7 @@ import { useLogout } from "@/features/api/use-logout";
 import { useCurrent } from "@/features/api/use-current";
 import { Spinner } from "@/components/spinner";
 import { LogOut } from "lucide-react";
+import { redirect } from "next/navigation";
 
 
 export const DashboardCard = () => {
@@ -18,6 +19,9 @@ export const DashboardCard = () => {
 	const { mutate: logout } = useLogout();
 	if (isLoading) {
 		return <Spinner />;
+	}
+	if (!user || !user.email || user.fullName === "Unknown User") {
+    	redirect("/sign-in");
 	}
 	const { fullName, email } = user || {};
 	const avatarFallback = fullName ? fullName.charAt(0).toUpperCase() : "U";
