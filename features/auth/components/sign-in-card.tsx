@@ -41,11 +41,12 @@ export const SignInCard = () => {
     const onSubmit = (data: z.infer<typeof signInFormSchema>) => {
         mutate({ json: data }, {
             onSuccess: (data: any) => {
-                showJsonToast(data, "Login successful");
-                router.push("/dashboard");
+                showJsonToast("Login successful", { email: data.email });
+                router.push("/dashBoard");
             },
             onError: (error: any) => {
-                showJsonToast(error, "Login failed");
+                const message = error instanceof Error ? error.message : "An unknown error occurred";
+                showJsonToast("Login failed", { message: message });
             }
         });
     };
