@@ -2,7 +2,7 @@
 
 A Jira-inspired project management app built with Next.js App Router, TypeScript, Hono, Prisma, and a shadcn-style component system.
 
-The current milestone delivers a working authentication and onboarding flow backed by database sessions.
+Current milestone: authentication and onboarding flow with database-backed sessions.
 
 ## Stack
 
@@ -10,53 +10,52 @@ The current milestone delivers a working authentication and onboarding flow back
 - React 19
 - TypeScript
 - Tailwind CSS v4
-- Hono (API routes)
+- Hono for API routes
 - Prisma + PostgreSQL
-- React Query
+- TanStack React Query
 - React Hook Form + Zod
 - shadcn UI primitives
 
-## Implemented
+## Current Features
 
-- Auth pages: sign in, sign up, onboarding, dashboard
-- API routes for login, register, onboarding, logout, and current user
-- Database-backed sessions (session table + cookie session id)
-- Form validation and field-level errors with Zod + React Hook Form
-- Query-based dashboard user fetch and logout cache cleanup
-
-## In Progress
-
-- Authentication hardening (password hashing, better cookie policy by environment)
-- Consistent API error shaping across all hooks and components
-- Route guards (server/client redirects by auth state)
-- Domain layer for projects, boards, and issues
+- Sign in, sign up, onboarding, and root dashboard experience
+- Auth API endpoints under `/api/auth`
+- Session table with cookie-based auth token (`auth_token`)
+- Server-side auth gate on the home page
+- Client-side current-user fetch via React Query
+- Logout endpoint that clears session record and cookie
 
 ## Repository Layout
 
 ```text
 app/
   (auth)/
-    dashBoard/page.tsx
+    layout.tsx
     onboarding/page.tsx
     sign-in/page.tsx
     sign-up/page.tsx
   api/[...route]/route.ts
+  layout.tsx
+  page.tsx
 
 features/
+  action.ts
+  schemas.ts
   api/
-    use-dashboard.ts
+    use-current.ts
     use-login.ts
     use-logout.tsx
     use-onboarding.ts
     use-register.ts
   auth/
     components/
+    constant.ts
     server/route.ts
-  schemas.ts
 
 lib/
   prismaHelper.ts
   rcp.ts
+  session-middelware.ts
 
 prisma/
   schema.prisma
@@ -73,9 +72,9 @@ npm install
 
 2. Configure environment variables
 
-Create a `.env` file with the variables required by Prisma and your API base URL.
+Create `.env` and `.env.local` for local development.
 
-Typical local values:
+Typical values:
 
 ```bash
 DATABASE_URL="postgresql://..."
@@ -96,7 +95,7 @@ npx prisma migrate dev
 npm run dev
 ```
 
-Open `http://localhost:3000`.
+Open http://localhost:3000.
 
 ## Scripts
 
@@ -107,42 +106,33 @@ npm run start
 npm run lint
 ```
 
-## Auth Flow
+## Auth Architecture
 
-1. User submits credentials from sign-in or sign-up form.
-2. API route validates payload via Zod validator.
-3. Server creates/looks up user and creates a session row.
-4. Server sets a cookie containing session id.
-5. Dashboard uses `/api/auth/me` through React Query.
-6. Logout deletes session row and clears cookie.
-
-## Engineering Conventions
-
-- Keep domain UI and data logic under `features/*`.
-- Keep reusable primitives under `components/ui/*`.
-- Keep form schemas centralized in `features/schemas.ts`.
-- Prefer typed API contracts (`InferRequestType`, `InferResponseType`).
-- Keep mutations fail-fast on non-2xx responses.
+1. Login and register create a `Session` row and set `auth_token` cookie.
+2. Hono `sessionMiddleware` reads the cookie and resolves the current user.
+3. `GET /api/auth/me` uses the middleware for client-side user fetch.
+4. `features/action.ts` performs server-side user resolution directly through Prisma for page gating.
+5. Logout deletes the session record and clears the cookie.
 
 ## Known Gaps
 
-- Passwords are not hashed yet.
-- Tests are not added yet.
-- Core Jira entities are not implemented yet.
+- Passwords are still stored and compared in plain text.
+- Tests are not implemented yet.
+- Core Jira domain entities are not implemented yet.
 
 ## Next Milestones
 
-1. Security pass
-- Hash passwords (bcrypt/argon2)
-- Normalize cookie policy for local vs production
+1. Security hardening
+- Add password hashing (bcrypt or argon2)
+- Move cookie security flags to environment-aware defaults
 - Add session rotation and revoke-all support
 
 2. Product foundation
-- Add Workspace, Project, Issue schema
-- Build CRUD APIs for Project and Issue
-- Add first board/list UI
+- Add Workspace, Project, and Issue schema
+- Build CRUD APIs for project and issue workflows
+- Build first board/list UI
 
 3. Quality pass
-- Add integration tests for auth routes
-- Add e2e happy-path auth flow
-- Add lint/typecheck in CI
+- Add integration tests for auth endpoints
+- Add end-to-end auth happy-path test
+- Add CI lint/typecheck gates

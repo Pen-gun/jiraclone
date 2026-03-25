@@ -3,20 +3,20 @@ Jira Clone Technical Documentation
 Version: March 2026
 
 Overview
-- The project uses Next.js App Router for UI and Hono handlers mounted in `app/api/[...route]/route.ts` for API endpoints.
-- Authentication is session-based using Prisma and PostgreSQL.
-- Frontend data mutations and queries are managed with React Query.
+- The project uses Next.js App Router for UI and Hono mounted at `app/api/[...route]/route.ts` for API endpoints.
+- Authentication is database-session based using Prisma and PostgreSQL.
+- Frontend data reads and mutations are managed with TanStack React Query.
 
 Architecture
 
 1. UI layer
 - Route pages are thin wrappers.
-- Feature cards contain form logic and user interactions.
+- Feature components handle forms and user interaction.
 - Shared primitives live in `components/ui`.
 
 2. API layer
 - Hono routes are grouped under `/api/auth`.
-- Endpoints:
+- Implemented endpoints:
   - `POST /api/auth/login`
   - `POST /api/auth/register`
   - `POST /api/auth/onboarding`
@@ -25,128 +25,107 @@ Architecture
 
 3. Data layer
 - Prisma models include `User` and `Session`.
-- Session rows store ownership and expiry.
-- Cookie stores the session identifier used to resolve current user.
+- Session rows contain `userId`, `createdAt`, `updatedAt`, and `expiresAt`.
+- Cookie `auth_token` stores the session id.
 
 4. Validation strategy
-- Zod schemas in `features/schemas.ts` are the source of truth for form payloads.
-- Hono zValidator enforces request contracts server-side.
-- React Hook Form + zodResolver enforces client-side validation.
+- Zod schemas in `features/schemas.ts` define request contracts.
+- Hono `zValidator` enforces server-side payload validation.
+- React Hook Form + zodResolver enforces client-side form validation.
 
-Auth Lifecycle
+Authentication Flow
 
 1. Register
-- Validates payload.
-- Creates user row.
-- Creates session row.
-- Sets auth cookie.
+- Validate payload.
+- Create `User` row.
+- Create `Session` row.
+- Set `auth_token` cookie.
 
 2. Login
-- Validates credentials.
-- Creates session row.
-- Sets auth cookie.
+- Validate payload.
+- Verify user credentials.
+- Create `Session` row.
+- Set `auth_token` cookie.
 
 3. Resolve current user
-- Reads cookie session id.
-- Looks up session.
-- Deletes expired session if expired.
-- Loads user.
+- Client path:
+  - `GET /api/auth/me` uses `sessionMiddleware`.
+  - Middleware reads `auth_token`, looks up session, checks expiry, returns user.
+- Server path:
+  - `features/action.ts` reads `auth_token` from Next cookies.
+  - It looks up session directly with Prisma for page-level auth gating.
 
 4. Logout
-- Deletes session row by cookie id if present.
-- Clears cookie.
+- `POST /api/auth/logout` uses `sessionMiddleware`.
+- Deletes the session row if found.
+- Clears cookie on response.
 
-Frontend Integration Pattern
+Frontend Integration
 
-1. Hooks
-- One React Query hook per endpoint in `features/api`.
-- Expected mutation behavior:
-  - check `response.ok`
-  - parse API error payload when not ok
-  - throw `Error` for non-2xx
-  - return JSON only on success
+1. API hooks
+- API hooks live in `features/api`:
+  - `use-current.ts`
+  - `use-login.ts`
+  - `use-logout.tsx`
+  - `use-onboarding.ts`
+  - `use-register.ts`
 
-2. Components
-- Submit actions call mutation hooks.
-- Success path:
-  - show success toast
-  - navigate to next route
-- Error path:
-  - show user-friendly failure toast
-- Buttons should use pending state to prevent duplicate submits.
+2. UI behavior
+- Submit handlers trigger mutation hooks.
+- Success path typically shows toast and routes to next page.
+- Error path shows toast with error details.
+- Buttons use pending state to prevent duplicate submissions.
 
-Environment Notes
+Environment Variables
 
-Required runtime configuration:
+Required:
 - `DATABASE_URL`
 - `NEXT_PUBLIC_API_URL`
 - `NODE_ENV`
 
-Cookie guidance:
-- Use `httpOnly: true`.
-- Prefer `secure: process.env.NODE_ENV === "production"`.
-- Prefer `sameSite: "lax"` for standard app navigation behavior.
+Cookie Notes
+- Current code sets `httpOnly: true` and `sameSite: "strict"`.
+- Local development uses `secure: false`.
+- Production should use environment-aware cookie security settings.
 
-Current Completion Snapshot
+Current Status
 
 Completed
-- Auth pages and forms
-- API route wiring
-- Prisma schema with session model
-- Session create/read/delete flow
-- Dashboard fetch + logout flow
+- Auth pages and form validation.
+- Auth API route wiring.
+- Prisma schema for user and session.
+- Session create/read/delete flow.
+- Server-side home page auth gate plus client-side current user query.
 
-Partially complete
-- Consistent error shape in all frontend hooks
-- Redirect guards for all auth transitions
+In progress
+- Password hashing and auth hardening.
+- Consistent frontend error typing.
+- Broader route guard coverage.
 
-Not complete
-- Password hashing
-- Automated tests
-- Jira domain entities (workspace/project/issue)
+Not implemented
+- Automated tests.
+- Jira entities like Workspace, Project, and Issue.
 
 Known Risks
 
-1. Password storage
-- Current flow compares plain text passwords.
+1. Plain text passwords
+- Passwords are currently stored and compared in plain text.
 
-2. Cookie policy
-- `secure: true` in local non-https environments can block cookies.
+2. Cookie defaults
+- Cookie flags are not yet centralized by environment.
 
-3. Error throwing style
-- Throwing plain objects in hooks can break error typing expectations.
+3. Hook error consistency
+- Some hooks still throw non-Error objects.
 
-Recommended Immediate Tasks
+Recommended Next Steps
 
 1. Security
-- Add bcrypt or argon2 hashing for register/login.
+- Add bcrypt/argon2 password hashing.
+- Use environment-based cookie policy.
 
-2. Hook consistency
-- Ensure all auth mutations throw `Error` on non-2xx.
+2. Quality
+- Add integration tests for auth routes.
+- Add e2e auth flow test.
 
-3. UX guards
-- Redirect unauthenticated users from protected routes.
-- Redirect authenticated users away from sign-in/sign-up.
-
-4. Quality
-- Add integration tests for auth endpoints.
-- Add an end-to-end happy path test for register -> onboarding -> dashboard -> logout.
-
-Roadmap (Suggested)
-
-Phase 1: Harden auth
-- Password hashing
-- Cookie/session policy cleanup
-- Session management improvements
-
-Phase 2: Build core domain
-- Workspace model
-- Project model
-- Issue model
-- CRUD APIs and first board view
-
-Phase 3: Collaboration features
-- Comments
-- Activity logs
-- Notifications
-- Role-based access controls
+3. Product foundation
+- Add Workspace/Project/Issue models and CRUD APIs.
