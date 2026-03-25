@@ -24,10 +24,12 @@ import {zodResolver} from "@hookform/resolvers/zod";
 import Link from 'next/link'
 import { signInFormSchema } from "@/features/schemas";
 import { useLogin } from "@/features/api/use-login";
+import { useRouter } from "next/router";
 
 
 export const SignInCard = () => {
     const {mutate} = useLogin();
+    const router = useRouter();
 
     const form = useForm<z.infer<typeof signInFormSchema>>({
         resolver: zodResolver(signInFormSchema),
@@ -37,9 +39,15 @@ export const SignInCard = () => {
         },
     });
     const onSubmit = (data: z.infer<typeof signInFormSchema>) => {
-        mutate({ json: data });
-        showJsonToast("Sign in successful!", data);
-       
+        mutate({ json: data }, {
+            onSuccess: (data: any) => {
+                showJsonToast(data, "Login successful");
+                router.push("/dashboard");
+            },
+            onError: (error: any) => {
+                showJsonToast(error, "Login failed");
+            }
+        });
     };
     return (
         <Card className="w-full h-full md:w-121.7 border-none shadow-none" >
