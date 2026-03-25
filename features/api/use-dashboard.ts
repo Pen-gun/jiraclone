@@ -2,6 +2,7 @@ import {useQuery} from "@tanstack/react-query";
 import { InferResponseType } from "hono";
 
 import {client} from "@/lib/rcp";
+import { tr } from "date-fns/locale";
 
 type ResponseType = InferResponseType<typeof client.api.auth.me['$get'], 200>
 
@@ -15,5 +16,6 @@ export const useDashboard = () => {
 			}
 			return await response.json();
 		},
+		refetchOnMount: "always",
 	});
 };
