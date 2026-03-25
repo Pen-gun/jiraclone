@@ -14,8 +14,18 @@ export const useOnboarding = () => {
         RequestType
     >({
         mutationFn: async ({json}) => {
-            const response = await client.api.auth.onboarding['$post']({json});
-            return await response.json();
+            try {
+                const response = await client.api.auth.onboarding['$post']({json});
+                if (!response.ok) {
+                    const error = (await response
+                        .json()
+                        .catch(() => null)) as { error?: string; message?: string } | null;
+                    throw new Error(error?.error ?? error?.message ?? "Onboarding failed");
+                }
+                return await response.json();
+            } catch (error) {
+                throw {error: error instanceof Error ? error.message : "An unknown error occurred"};
+            }
         }
     })
     return mutation;
