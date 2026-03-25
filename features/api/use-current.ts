@@ -7,11 +7,16 @@ export const useCurrent = () => {
 		queryKey: ["dashboard"],
 		queryFn: async () => {
 			const response = await client.api.auth.me.$get();
+			if (response.status === 401) {
+				return null;
+			}
+
 			if (!response.ok) {
 				throw new Error("Failed to fetch current user");
 			}
 			return await response.json();
 		},
+		retry: false,
 		refetchOnMount: "always",
 	});
 };

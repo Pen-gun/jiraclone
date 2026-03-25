@@ -13,7 +13,7 @@ const AuthLayout = ({ children }: AuthLayoutProps) => {
         <main className="bg-neutral-100 min-h-screen">
             <div className="mx-auto max-w-screen-2xl p-4">
                 <nav className="flex justify-between items-center">
-                    <Image src='/logo.svg' alt='logo' width={100} height={50} />
+                    <Image src='/logo.svg' alt='logo' width={100} height={50} style={{ height: "auto" }} />
                     <Link href={pathname === '/sign-in' ? "/sign-up" : "/sign-in"}>
                         <Button variant="secondary" className="hover:cursor-pointer">
                             {pathname === '/sign-in' ? "Sign Up" : "Sign In"}

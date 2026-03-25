@@ -41,7 +41,7 @@ export const OnBoardingCard = () => {
         mutate({ json: data }, {
             onSuccess: (data: any) => {
                 showJsonToast("Onboarding successful!", data);
-                router.push("/dashBoard");
+                router.push("/");
             },
             onError: (error: any) => {
                 showJsonToast("Onboarding failed!", error);
