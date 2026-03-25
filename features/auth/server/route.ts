@@ -1,22 +1,46 @@
-import { Hono} from 'hono'
+import { Context, Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import { signInFormSchema, signUpFormSchema, onBoardingFormSchema } from '@/features/schemas'
-import { prisma} from '@/lib/prismaHelper'
-import {
-    clearAuthCookie,
-    createAuthToken,
-    getCurrentUserId,
-    setAuthCookie,
-} from '@/lib/auth-token'
+import { prisma } from '@/lib/prismaHelper'
+import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
+import { AUTH_COOKIE_NAME } from '../constant'
+
+
+
+const getAuthUser = async (c: Context) => {
+    const sessionId = getCookie(c, AUTH_COOKIE_NAME)
+    if (!sessionId) return null
+
+    const session = await prisma.session.findUnique({
+        where: { id: sessionId },
+    })
+
+    if (!session) return null;
+
+    if (session.expiresAt < new Date()) {
+        await prisma.session.delete({
+            where: { id: sessionId },
+        });
+        return null;
+    }
+
+    const user = await prisma.user.findUnique({
+        where: { id: session.userId },
+    })
+
+    if (!user) return null
+
+    return user
+}
 
 const app = new Hono()
-.post("/login", 
-    zValidator("json", signInFormSchema), 
-    async (c)=>{
-        const { email, password} = c.req.valid("json");
-        const user = await prisma.user.findUnique({
-            where: { email },
-        });
+    .post("/login",
+        zValidator("json", signInFormSchema),
+        async (c) => {
+            const { email, password } = c.req.valid("json");
+            const user = await prisma.user.findUnique({
+                where: { email },
+            });
             if (!user) {
                 console.log("Login failed: User not found for email:", email);
                 return c.json({ error: "Invalid email or password" }, 401);
@@ -25,106 +49,113 @@ const app = new Hono()
                 console.log("Login failed: Incorrect password for email:", email);
                 return c.json({ error: "Invalid email or password" }, 401);
             }
-        console.log("Received login request with email:", email);
-
-        const token = await createAuthToken({
-            userId: user.id,
-            email: user.email,
-            onBoardingCompleted: user.onBoardingCompleted,
-        });
-        setAuthCookie(c, token);
-        
-        const { password: _password, ...safeUser } = user;
-        return c.json(safeUser, 200);
-
-})
-.post("/register",
-    zValidator("json", signUpFormSchema),
-    async (c)=>{
-        const { email, password} = c.req.valid("json");
-        try {
-            const user = await prisma.user.create({
+            console.log("Received login request with email:", email);
+            const Token = await prisma.session.create({
                 data: {
-                    email,
-                    password,
-                    onBoardingCompleted: false,
+                    userId: user.id,
+                    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Session expires in 7 days
                 }
             });
-
-            const token = await createAuthToken({
-                userId: user.id,
-                email: user.email,
-                onBoardingCompleted: user.onBoardingCompleted,
+            setCookie(c, AUTH_COOKIE_NAME, Token.id, {
+                path: "/",
+                httpOnly: true,
+                secure: true,
+                sameSite: "strict",
+                maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
             });
-            setAuthCookie(c, token);
 
             const { password: _password, ...safeUser } = user;
-            console.log("Received registration request with email:", email);
-            return c.json(safeUser, 201);
-        } catch (error) {
-            console.error("Registration error:", error);
-            return c.json({ error: "Failed to register user" }, 500);
+            return c.json(safeUser, 200);
+
+        })
+    .post("/register",
+        zValidator("json", signUpFormSchema),
+        async (c) => {
+            const { email, password } = c.req.valid("json");
+            try {
+                const user = await prisma.user.create({
+                    data: {
+                        email,
+                        password,
+                        onBoardingCompleted: false,
+                    }
+                });
+                const Token = await prisma.session.create({
+                    data: {
+                        userId: user.id,
+                        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Session expires in 7 days
+                    }
+                });
+                setCookie(c, AUTH_COOKIE_NAME, Token.id, {
+                    path: "/",
+                    httpOnly: true,
+                    secure: true,
+                    sameSite: "strict",
+                    maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
+                });
+
+                const { password: _password, ...safeUser } = user;
+                console.log("Received registration request with email:", email);
+                return c.json(safeUser, 201);
+            } catch (error) {
+                console.error("Registration error:", error);
+                return c.json({ error: "Failed to register user" }, 500);
+            }
         }
-    }
-)
-.post("/onboarding",
-    zValidator("json", onBoardingFormSchema),
-    async (c) => {
-        const { fullName, age, bio } = c.req.valid("json");
-        const userId = await getCurrentUserId(c);
-        if (!userId) {
-            return c.json({ error: "Unauthorized" }, 401);
-        }
+    )
+    .post("/onboarding",
+        zValidator("json", onBoardingFormSchema),
+        async (c) => {
+            const { fullName, age, bio } = c.req.valid("json");
+            const user = await getAuthUser(c);
+            if (!user) {
+                return c.json({ error: "Unauthorized" }, 401);
+            }
+
 
             try {
-                const user = await prisma.user.update({
-                where: { id: userId },
-                data: {
-                    fullName,
-                    age,
-                    bio,
-                    onBoardingCompleted: true,
-                },
+                const updatedUser = await prisma.user.update({
+                    where: { id: user.id },
+                    data: {
+                        fullName,
+                        age,
+                        bio,
+                        onBoardingCompleted: true,
+                    },
                 });
+                console.log("Updated onboarding for:", updatedUser.email);
 
-                const Token = await createAuthToken({
-                    userId: user.id,
-                    email: user.email,
-                    onBoardingCompleted: user.onBoardingCompleted,
-                });
-                setAuthCookie(c, Token);
-
-                console.log("Updated onboarding for:", user.email);
-
-                const { password, ...safeUser } = user;
+                const { password, ...safeUser } = updatedUser;
                 return c.json(safeUser, 200);
             } catch (error) {
                 console.error("Onboarding error:", error);
 
                 return c.json(
-                { error: "Failed to update onboarding profile" },
-                500
+                    { error: "Failed to update onboarding profile" },
+                    500
                 );
             }
-            }
-)
-.post("/logout", async (c) => {
-    clearAuthCookie(c);
-    return c.json({ message: "Logged out successfully" }, 200);
-})
-.get("/me", async (c) => {
-    const userId = await getCurrentUserId(c);
-    if (!userId) {
-        return c.json({ error: "Unauthorized" }, 401);
-    }
-    const user = await prisma.user.findUnique({
-        where: { id: userId },
+        }
+    )
+    .post("/logout", async (c) => {
+        const sessionId = getCookie(c, AUTH_COOKIE_NAME);
+        if (sessionId) {
+            await prisma.session.delete({
+                where: { id: sessionId },
+            });
+        }
+        deleteCookie(c, AUTH_COOKIE_NAME, {
+            path: "/",
+        });
+        return c.json({ message: "Logged out successfully" }, 200);
+    })
+    .get("/me", async (c) => {
+        const user = await getAuthUser(c);
+        if (!user) {
+            return c.json({ error: "Unauthorized" }, 401);
+        }
+        const { password, ...safeUser } = user;
+        return c.json(safeUser, 200);
     });
-    if (!user) {
-        return c.json({ error: "User not found" }, 404);
-    }
-    const { password, ...safeUser } = user;
-    return c.json(safeUser, 200);
-});
 
 export default app;
