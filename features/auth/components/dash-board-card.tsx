@@ -14,12 +14,12 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { useDashboard } from "@/features/api/use-dashboard";
+import { useCurrent } from "@/features/api/use-current";
 import { useLogout } from "@/features/api/use-logout";
 
 const DashboardCard = () => {
 	const router = useRouter();
-	const { data: user, isError } = useDashboard();
+	const { data: user, isError } = useCurrent();
 	const { mutate: logout, isPending: isLoggingOut } = useLogout();
 
 	useEffect(() => {
