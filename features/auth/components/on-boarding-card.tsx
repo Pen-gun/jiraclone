@@ -27,7 +27,7 @@ import { useRouter } from "next/navigation";
 
 export const OnBoardingCard = () => {
     const router = useRouter();
-    const { mutate } = useOnboarding();
+    const { mutate, isPending } = useOnboarding();
 
     const form = useForm<z.infer<typeof onBoardingFormSchema>>({
         resolver: zodResolver(onBoardingFormSchema),
@@ -117,8 +117,8 @@ export const OnBoardingCard = () => {
                                 </Field>
                             )}
                         />
-                        <Button type="submit" className="w-full">
-                            Continue
+                        <Button type="submit" className="w-full" disabled={isPending}>
+                            {isPending ? "Continuing..." : "Continue"}
                         </Button>
                     </FieldGroup>
                 </form>
