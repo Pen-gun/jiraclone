@@ -1,76 +1,152 @@
-Jira Clone Progress Guide (Step-by-Step)
+Jira Clone Technical Documentation
 
-This document records the exact steps completed so far and where the project currently stops.
+Version: March 2026
 
-Step 1: Initialize the project
-- Created a Next.js 16 App Router project with TypeScript.
+Overview
+- The project uses Next.js App Router for UI and Hono handlers mounted in `app/api/[...route]/route.ts` for API endpoints.
+- Authentication is session-based using Prisma and PostgreSQL.
+- Frontend data mutations and queries are managed with React Query.
 
-Step 2: Set up UI foundation
-- Configured Tailwind CSS.
-- Configured shadcn/ui.
-- Generated base UI components used by auth pages.
+Architecture
 
-Step 3: Install core dependencies
-- Installed framework and UI dependencies:
-	- next, react, react-dom
-	- class-variance-authority, clsx, tailwind-merge
-	- lucide-react, react-icons
-	- sonner
-- Installed form and validation dependencies:
-	- react-hook-form
-	- zod
-	- @hookform/resolvers
-- Installed API utility dependency:
-	- hono
-	-tanstack
+1. UI layer
+- Route pages are thin wrappers.
+- Feature cards contain form logic and user interactions.
+- Shared primitives live in `components/ui`.
 
-Step 4: Create auth app structure
-- Added grouped auth routes under app/(auth).
-- Created pages for:
-	- sign-in
-	- sign-up
+2. API layer
+- Hono routes are grouped under `/api/auth`.
+- Endpoints:
+  - `POST /api/auth/login`
+  - `POST /api/auth/register`
+  - `POST /api/auth/onboarding`
+  - `POST /api/auth/logout`
+  - `GET /api/auth/me`
 
-Step 5: Build sign-in form (client-side)
-- Implemented React Hook Form using useForm.
-- Used Controller to integrate custom Input components.
-- Added Zod schema validation for:
-	- email format
-	- password length constraints
-- Rendered field-level validation errors.
+3. Data layer
+- Prisma models include `User` and `Session`.
+- Session rows store ownership and expiry.
+- Cookie stores the session identifier used to resolve current user.
 
-Step 6: Build sign-up form (client-side)
-- Implemented React Hook Form using useForm.
-- Used Controller for custom inputs.
-- Added Zod schema validation for:
-	- email
-	- password
-	- confirmPassword
-- Added password confirmation check with refine.
-- Attached mismatch error to confirmPassword using path ["confirmPassword"].
+4. Validation strategy
+- Zod schemas in `features/schemas.ts` are the source of truth for form payloads.
+- Hono zValidator enforces request contracts server-side.
+- React Hook Form + zodResolver enforces client-side validation.
 
-Step 7: Add field primitives and accessibility
-- Used shadcn Field primitives:
-	- Field
-	- FieldGroup
-	- FieldError
-- Displayed per-field errors using FieldError + fieldState.error.
-- Added aria-invalid to invalid inputs.
-- Added noValidate on forms to rely on schema-driven validation messages.
+Auth Lifecycle
 
-Step 8: Current submit behavior
-- Form onSubmit handlers currently log form values.
-- No API call is wired yet.
+1. Register
+- Validates payload.
+- Creates user row.
+- Creates session row.
+- Sets auth cookie.
 
-Current Project Status (Reached Point)
-- Sign-in: client-side validation is complete.
-- Sign-up: client-side validation is complete.
-- Confirm password mismatch handling is complete.
-- Field-level error rendering is complete.
-- Backend submission flow is not implemented yet.
+2. Login
+- Validates credentials.
+- Creates session row.
+- Sets auth cookie.
 
-Next Steps (Not implemented yet)
-1. Add signup backend endpoint or server action.
-2. Update sign-up submit handler to async API submission.
-3. Map server field errors to form.setError.
-4. Add generic top-level error handling for unknown failures.
-5. Disable submit button during isSubmitting and show loading text.
+3. Resolve current user
+- Reads cookie session id.
+- Looks up session.
+- Deletes expired session if expired.
+- Loads user.
+
+4. Logout
+- Deletes session row by cookie id if present.
+- Clears cookie.
+
+Frontend Integration Pattern
+
+1. Hooks
+- One React Query hook per endpoint in `features/api`.
+- Expected mutation behavior:
+  - check `response.ok`
+  - parse API error payload when not ok
+  - throw `Error` for non-2xx
+  - return JSON only on success
+
+2. Components
+- Submit actions call mutation hooks.
+- Success path:
+  - show success toast
+  - navigate to next route
+- Error path:
+  - show user-friendly failure toast
+- Buttons should use pending state to prevent duplicate submits.
+
+Environment Notes
+
+Required runtime configuration:
+- `DATABASE_URL`
+- `NEXT_PUBLIC_API_URL`
+- `NODE_ENV`
+
+Cookie guidance:
+- Use `httpOnly: true`.
+- Prefer `secure: process.env.NODE_ENV === "production"`.
+- Prefer `sameSite: "lax"` for standard app navigation behavior.
+
+Current Completion Snapshot
+
+Completed
+- Auth pages and forms
+- API route wiring
+- Prisma schema with session model
+- Session create/read/delete flow
+- Dashboard fetch + logout flow
+
+Partially complete
+- Consistent error shape in all frontend hooks
+- Redirect guards for all auth transitions
+
+Not complete
+- Password hashing
+- Automated tests
+- Jira domain entities (workspace/project/issue)
+
+Known Risks
+
+1. Password storage
+- Current flow compares plain text passwords.
+
+2. Cookie policy
+- `secure: true` in local non-https environments can block cookies.
+
+3. Error throwing style
+- Throwing plain objects in hooks can break error typing expectations.
+
+Recommended Immediate Tasks
+
+1. Security
+- Add bcrypt or argon2 hashing for register/login.
+
+2. Hook consistency
+- Ensure all auth mutations throw `Error` on non-2xx.
+
+3. UX guards
+- Redirect unauthenticated users from protected routes.
+- Redirect authenticated users away from sign-in/sign-up.
+
+4. Quality
+- Add integration tests for auth endpoints.
+- Add an end-to-end happy path test for register -> onboarding -> dashboard -> logout.
+
+Roadmap (Suggested)
+
+Phase 1: Harden auth
+- Password hashing
+- Cookie/session policy cleanup
+- Session management improvements
+
+Phase 2: Build core domain
+- Workspace model
+- Project model
+- Issue model
+- CRUD APIs and first board view
+
+Phase 3: Collaboration features
+- Comments
+- Activity logs
+- Notifications
+- Role-based access controls

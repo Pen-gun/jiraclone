@@ -1,134 +1,148 @@
 # Jira Clone
 
-A production-oriented Jira-style project management app built with Next.js App Router, TypeScript, and shadcn-based UI primitives.
+A Jira-inspired project management app built with Next.js App Router, TypeScript, Hono, Prisma, and a shadcn-style component system.
 
-This repository currently focuses on authentication UI and form architecture, with server-side auth workflows in progress.
+The current milestone delivers a working authentication and onboarding flow backed by database sessions.
 
-## Tech Stack
+## Stack
 
 - Next.js 16 (App Router)
 - React 19
 - TypeScript
 - Tailwind CSS v4
-- shadcn UI components + Radix primitives
-- React Hook Form
-- Zod
-- @hookform/resolvers
+- Hono (API routes)
+- Prisma + PostgreSQL
+- React Query
+- React Hook Form + Zod
+- shadcn UI primitives
 
-## Current Scope
+## Implemented
 
-Implemented:
-- Auth route group with dedicated layout.
-- Sign-in and sign-up cards.
-- Client-side form validation with React Hook Form + Zod.
-- Field-level error rendering via shadcn Field primitives.
-- Password confirmation validation on sign-up.
+- Auth pages: sign in, sign up, onboarding, dashboard
+- API routes for login, register, onboarding, logout, and current user
+- Database-backed sessions (session table + cookie session id)
+- Form validation and field-level errors with Zod + React Hook Form
+- Query-based dashboard user fetch and logout cache cleanup
 
-In progress:
-- Server-side sign-up integration.
-- API error mapping and generic error states.
+## In Progress
 
-## Project Structure
+- Authentication hardening (password hashing, better cookie policy by environment)
+- Consistent API error shaping across all hooks and components
+- Route guards (server/client redirects by auth state)
+- Domain layer for projects, boards, and issues
+
+## Repository Layout
 
 ```text
 app/
-	layout.tsx
-	page.tsx
-	(auth)/
-		layout.tsx
-		sign-in/page.tsx
-		sign-up/page.tsx
-
-components/
-	dotted-seperator.tsx
-	ui/
-		button.tsx
-		card.tsx
-		input.tsx
-		field.tsx
-		...
+  (auth)/
+    dashBoard/page.tsx
+    onboarding/page.tsx
+    sign-in/page.tsx
+    sign-up/page.tsx
+  api/[...route]/route.ts
 
 features/
-	auth/
-		components/
-			sign-in-card.tsx
-			sign-up-card.tsx
+  api/
+    use-dashboard.ts
+    use-login.ts
+    use-logout.tsx
+    use-onboarding.ts
+    use-register.ts
+  auth/
+    components/
+    server/route.ts
+  schemas.ts
 
 lib/
-	utils.ts
+  prismaHelper.ts
+  rcp.ts
+
+prisma/
+  schema.prisma
+  migrations/
 ```
 
 ## Getting Started
 
-### 1. Install dependencies
+1. Install dependencies
 
 ```bash
 npm install
 ```
 
-### 2. Run local development server
+2. Configure environment variables
+
+Create a `.env` file with the variables required by Prisma and your API base URL.
+
+Typical local values:
+
+```bash
+DATABASE_URL="postgresql://..."
+NEXT_PUBLIC_API_URL="http://localhost:3000"
+NODE_ENV="development"
+```
+
+3. Generate Prisma client and run migrations
+
+```bash
+npx prisma generate
+npx prisma migrate dev
+```
+
+4. Start development server
 
 ```bash
 npm run dev
 ```
 
-Open http://localhost:3000.
+Open `http://localhost:3000`.
 
-## Available Scripts
+## Scripts
 
 ```bash
-npm run dev     # Start development server
-npm run build   # Create production build
-npm run start   # Run production server
-npm run lint    # Run ESLint
+npm run dev
+npm run build
+npm run start
+npm run lint
 ```
 
-## Form Architecture
+## Auth Flow
 
-Auth forms use the following pattern:
+1. User submits credentials from sign-in or sign-up form.
+2. API route validates payload via Zod validator.
+3. Server creates/looks up user and creates a session row.
+4. Server sets a cookie containing session id.
+5. Dashboard uses `/api/auth/me` through React Query.
+6. Logout deletes session row and clears cookie.
 
-1. Zod schema defines data shape and constraints.
-2. useForm initializes form state with zodResolver.
-3. Controller binds custom Input components.
-4. Field and FieldError (from ui/field) render accessible validation state.
+## Engineering Conventions
 
-Why this pattern:
-- Keeps validation logic centralized and type-safe.
-- Works cleanly with custom UI components.
-- Avoids tight coupling to a single form abstraction layer.
+- Keep domain UI and data logic under `features/*`.
+- Keep reusable primitives under `components/ui/*`.
+- Keep form schemas centralized in `features/schemas.ts`.
+- Prefer typed API contracts (`InferRequestType`, `InferResponseType`).
+- Keep mutations fail-fast on non-2xx responses.
 
-## Validation and Error Handling Status
+## Known Gaps
 
-Client-side validation:
-- Complete for sign-in and sign-up.
+- Passwords are not hashed yet.
+- Tests are not added yet.
+- Core Jira entities are not implemented yet.
 
-Field-level errors:
-- Complete using FieldError.
+## Next Milestones
 
-Server-side/API errors:
-- Not implemented yet.
-- Next step is to add submit try/catch, map known field errors with setError, and show a generic top-level message for unknown failures.
+1. Security pass
+- Hash passwords (bcrypt/argon2)
+- Normalize cookie policy for local vs production
+- Add session rotation and revoke-all support
 
-## Engineering Standards
+2. Product foundation
+- Add Workspace, Project, Issue schema
+- Build CRUD APIs for Project and Issue
+- Add first board/list UI
 
-- Keep feature logic in features/* and shared primitives in components/ui/*.
-- Maintain schema-driven validation for all forms.
-- Prefer explicit response contracts for API routes.
-- Add loading and disabled states for async form submissions.
-- Do not merge auth changes without error-state coverage.
-
-## Recommended Next Milestone
-
-1. Add sign-up API endpoint or server action.
-2. Wire sign-up submit to backend.
-3. Handle response cases:
-	 - success
-	 - field errors (email/password)
-	 - generic server error
-4. Add pending state for submit button.
-5. Add smoke test for sign-up happy and failure paths.
-
-## Notes
-
-- This codebase intentionally uses shadcn Field primitives rather than shadcn Form/FormMessage wrappers.
-- If needed, both approaches can coexist as long as one clear pattern is enforced per feature.
+3. Quality pass
+- Add integration tests for auth routes
+- Add e2e happy-path auth flow
+- Add lint/typecheck in CI
