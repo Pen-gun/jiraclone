@@ -16,7 +16,6 @@ export const useCurrent = () => {
 			}
 			return await response.json();
 		},
-		retry: false,
 		refetchOnMount: "always",
 	});
 };
