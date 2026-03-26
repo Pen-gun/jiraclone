@@ -33,9 +33,9 @@ const app = new Hono()
             setCookie(c, AUTH_COOKIE_NAME, Token.id, {
                 path: "/",
                 httpOnly: true,
-                secure: true, // Set to true in production with HTTPS
-                sameSite: "strict",
-                maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
+                secure: true, 
+                sameSite: "Lax",
+                maxAge: 7 * 24 * 60 * 60, 
             });
 
             const { password: _password, ...safeUser } = user;
@@ -64,7 +64,7 @@ const app = new Hono()
                     path: "/",
                     httpOnly: true,
                     secure: true, // Set to true in production with HTTPS
-                    sameSite: "strict",
+                    sameSite: "Lax",
                     maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
                 });
 

@@ -42,7 +42,8 @@ export const SignInCard = () => {
         mutate({ json: data }, {
             onSuccess: (data: any) => {
                 showJsonToast("Login successful", { email: data.email });
-                router.push("/");
+                router.replace("/");
+                router.refresh();
             },
             onError: (error: any) => {
                 const message = error instanceof Error ? error.message : "An unknown error occurred";
