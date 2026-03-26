@@ -6,7 +6,7 @@ export default async function Home() {
     const user = await getCurrentUser();
     if (!user) redirect("/sign-in")
     return ( 
-    <div> 
+    <div className="bg-neutral-500 p-1 rounded-md"> 
         <CreateWorkspaceForm/>
     </div>
 );

@@ -38,7 +38,11 @@ export const CreateWorkspaceForm = ({ onCancel }: CreateWorkspaceFormProps) => {
                 <DottedSeparator />
             </div>
             <CardContent className="p-7">
-
+                <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
+                    <FieldGroup>
+                        
+                    </FieldGroup>
+                </form>
             </CardContent>
             
         </Card>
