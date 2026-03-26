@@ -9,13 +9,13 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     return (
         <div className="min-h-screen">
             <div className="flex w-full h-full">
-                <div className="fixed left-0 top-14 hidden lg:block lg:w-[256px] h-full overflow-y-auto">
+                <div className="fixed left-0 top-0 hidden lg:block lg:w-[256px] h-full overflow-y-auto">
                     <Sidebar />
                 </div>
                 <div className="lg:pl-66">
                     <div className="mx-auto max-w-screen-2xl h-full">
                         <Navbar />
-                        <main className="h-full pt-24 pb-8 px-6 flex flex-col">
+                        <main className="h-full pt-8 pb-8 px-6 flex flex-col">
                             {children}
                         </main>
                     </div>   
