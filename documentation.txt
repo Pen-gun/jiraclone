@@ -2,146 +2,157 @@ Jira Clone Technical Documentation
 
 Version: March 2026
 
-Overview
-- The project uses Next.js App Router for UI and Hono mounted at `app/api/[...route]/route.ts` for API endpoints.
-- Authentication is database-session based using Prisma and PostgreSQL.
-- Frontend data reads and mutations are managed with TanStack React Query.
-- Workspace creation UI is implemented and currently persists to the `Project` model.
+Purpose
+- This document is a from-scratch onboarding runbook for new or junior developers.
+- If you follow all steps in order, you should reach the current working state of this repository.
 
-Architecture
+Current Product Scope
+- Auth: sign up, sign in, onboarding, current-user, logout.
+- Dashboard root page with server auth gate.
+- Workspace create form and API.
+- Note: workspace UI currently stores records in Prisma `Project` model.
 
-1. UI layer
-- Route pages are thin wrappers.
-- Feature components handle forms and user interaction.
-- Shared primitives live in `components/ui`.
+Tech Stack
+- Next.js 16 App Router
+- React 19 + TypeScript
+- Hono API mounted in Next route handler
+- Prisma + PostgreSQL
+- TanStack React Query
+- React Hook Form + Zod
+- Tailwind CSS + shadcn UI style components
 
-2. API layer
-- Hono routes are grouped under `/api/auth` and `/api/workspaces`.
-- Implemented endpoints:
-  - `POST /api/auth/login`
-  - `POST /api/auth/register`
-  - `POST /api/auth/onboarding`
-  - `POST /api/auth/logout`
-  - `GET /api/auth/me`
-  - `POST /api/workspaces`
+Prerequisites
+- Node.js 20 or newer
+- npm 10 or newer
+- PostgreSQL database available locally or remote
+- Git installed
 
-3. Data layer
-- Prisma models include `User`, `Session`, `Project`, `Task`, and `Comment`.
-- Session rows contain `userId`, `createdAt`, `updatedAt`, and `expiresAt`.
-- Cookie `auth_token` stores the session id.
+Onboarding Setup (From Scratch)
 
-4. Validation strategy
-- Zod schemas in `features/schemas.ts` define request contracts.
-- Hono `zValidator` enforces server-side payload validation.
-- React Hook Form + zodResolver enforces client-side form validation.
+1. Clone and install
+- `git clone <repo-url>`
+- `cd jiraclone`
+- `npm install`
 
-Authentication Flow
+2. Create environment files
+- Create `.env` and `.env.local` in project root.
+- Add values like:
 
-1. Register
-- Validate payload.
-- Create `User` row.
-- Create `Session` row.
-- Set `auth_token` cookie.
+`DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DB_NAME?schema=public"`
+`NEXT_PUBLIC_API_URL="http://localhost:3000"`
+`NODE_ENV="development"`
 
-2. Login
-- Validate payload.
-- Verify user credentials.
-- Create `Session` row.
-- Set `auth_token` cookie.
+3. Generate Prisma client and apply schema
+- `npx prisma generate`
+- `npx prisma migrate dev`
 
-3. Resolve current user
-- Client path:
-  - `GET /api/auth/me` uses `sessionMiddleware`.
-  - Middleware reads `auth_token`, looks up session, checks expiry, returns user.
-- Server path:
-  - `features/action.ts` reads `auth_token` from Next cookies.
-  - It looks up session directly with Prisma for page-level auth gating.
+4. Start app
+- `npm run dev`
+- Open `http://localhost:3000`
 
-4. Logout
-- `POST /api/auth/logout` uses `sessionMiddleware`.
-- Deletes the session row if found.
-- Clears cookie on response.
+5. First-run verification
+- Open `/sign-up` and create an account.
+- Complete onboarding.
+- Confirm `/` loads and does not redirect to sign-in while logged in.
+- Click logout and verify redirect to `/sign-in`.
 
-Workspace Flow
+Expected API Endpoints
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `POST /api/auth/onboarding`
+- `POST /api/auth/logout`
+- `GET /api/auth/me`
+- `POST /api/workspaces`
 
-1. Create workspace
-- `CreateWorkspaceForm` validates `name` and optional `description` with Zod.
-- `useCreateWorkspace` calls `POST /api/workspaces`.
-- Route uses `sessionMiddleware` and creates a `Project` row with `ownerId` of current user.
-- On success, form resets and `workspaces` query key is invalidated.
+Project Structure (Important Paths)
+- `app/api/[...route]/route.ts` mounts Hono routes.
+- `features/auth/server/route.ts` auth endpoints.
+- `lib/session-middelware.ts` cookie/session validation.
+- `features/action.ts` server-side current-user gate for pages.
+- `features/auth/api/*` auth client hooks.
+- `features/workspaces/components/create-workspace-form.tsx` workspace create UI.
+- `features/workspaces/server/route.ts` workspace create API.
+- `features/workspaces/schemas.ts` workspace form/server validation.
+- `prisma/schema.prisma` data models.
 
-Frontend Integration
+Data Model Snapshot
+- `User`
+- `Session`
+- `Project`
+- `Task`
+- `Comment`
 
-1. API hooks
-- Auth hooks live in `features/auth/api`:
-  - `use-current.ts`
-  - `use-login.ts`
-  - `use-logout.tsx`
-  - `use-onboarding.ts`
-  - `use-register.ts`
-- Workspace hooks live in `features/workspaces/api`:
-  - `use-create-workspace.ts`
+Current Flow Details
 
-2. UI behavior
-- Submit handlers trigger mutation hooks.
-- Success path typically shows toast and routes to next page.
-- Error path shows toast with error details.
-- Buttons use pending state to prevent duplicate submissions.
+Auth flow
+1. Register or login request hits Hono auth route.
+2. Server creates `Session` row and sets `auth_token` cookie.
+3. Middleware reads cookie and resolves user.
+4. `/api/auth/me` returns current user when authenticated.
+5. Logout deletes session and clears cookie.
 
-Environment Variables
+Workspace flow
+1. Create form validates with Zod.
+2. Mutation posts to `/api/workspaces`.
+3. Route checks session middleware and writes to `Project`.
+4. On success, form resets and query invalidates.
 
-Required:
-- `DATABASE_URL`
-- `NEXT_PUBLIC_API_URL`
-- `NODE_ENV`
+Common Day-1 Tasks
 
-Cookie Notes
-- Current code sets `httpOnly: true`, `sameSite: "Lax"`, and `secure: true`.
-- In localhost over HTTP, `secure: true` can block session cookies.
-- Production should keep `secure: true`; local development should use environment-aware cookie security settings.
+Add a new API route
+1. Create feature route file under `features/<feature>/server/route.ts`.
+2. Mount route inside `app/api/[...route]/route.ts`.
+3. Add zod schema for request validation.
+4. Add hook under feature `api` folder.
+5. Connect UI form or action.
 
-Current Status
+Add a new form
+1. Add zod schema.
+2. Build client component with React Hook Form.
+3. Submit via mutation hook.
+4. Add success and error handling.
 
-Completed
-- Auth pages and form validation.
-- Auth API route wiring.
-- Prisma schema for user, session, project, task, and comment.
-- Session create/read/delete flow.
-- Server-side home page auth gate plus client-side current user query.
-- Workspace create form, schema, route, and mutation hook.
+Troubleshooting Guide
 
-In progress
-- Password hashing and auth hardening.
-- Consistent frontend error typing.
-- Broader route guard coverage.
-- Workspace/project naming consistency across UI and Prisma.
+Issue: login succeeds but user returns to sign-in
+1. Check `POST /api/auth/login` returns 200.
+2. Check response contains `Set-Cookie` for `auth_token`.
+3. Check next `GET /api/auth/me` status.
+4. If cookie is missing on localhost, review secure cookie flag in auth route.
 
-Not implemented
-- Automated tests.
-- Issue workflow UI (board/list) and CRUD beyond create.
+Issue: `useForm` export not found / react-server import
+1. Ensure form component begins with `"use client"`.
+2. Ensure component is not treated as server-only through import chain.
 
-Known Risks
+Issue: Event handlers cannot be passed to Client Component props
+1. Do not pass raw function props from server component into client component unless boundary is correct.
+2. Move interactivity into a client component wrapper.
 
-1. Plain text passwords
-- Passwords are currently stored and compared in plain text.
+Issue: redirected to `/dashBoard` 404
+1. Use `/` for dashboard root unless route exists.
+2. Keep path names consistent with app directory segments.
 
-2. Cookie defaults
-- Cookie flags are not yet centralized by environment.
-- Current `secure: true` behavior can break localhost auth persistence.
+Known Risks (Current)
+- Passwords are currently plain text.
+- Cookie policy is not environment-aware in all paths.
+- Some frontend code still uses loose error typing (`any`).
+- Workspace naming in UI differs from DB model naming (`Project`).
 
-3. Hook error consistency
-- Some hooks still throw non-Error objects.
+Definition of Done For Local Setup
+- `npm run dev` starts without blocking runtime errors.
+- Register, login, onboarding, and logout flow works.
+- `/api/auth/me` returns 200 when logged in and 401 after logout.
+- Workspace creation succeeds from dashboard form.
 
 Recommended Next Steps
-
 1. Security
-- Add bcrypt/argon2 password hashing.
-- Use environment-based cookie policy.
+- Add password hashing.
+- Make cookie `secure` environment-aware.
 
 2. Quality
-- Add integration tests for auth routes.
-- Add e2e auth flow test.
+- Add integration tests for auth and workspace create endpoint.
+- Add e2e test for auth happy path.
 
-3. Product foundation
-- Add project/task list, detail, update, and delete APIs and pages.
-- Add issue-style status transitions and board/list views.
+3. Product
+- Align naming: Workspace in UI and model layer.
+- Add read/list/update/delete for projects and tasks.
