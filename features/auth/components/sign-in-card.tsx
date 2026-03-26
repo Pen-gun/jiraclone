@@ -23,7 +23,7 @@ import {Controller, useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import Link from 'next/link'
 import { signInFormSchema } from "@/features/schemas";
-import { useLogin } from "@/features/api/use-login";
+import { useLogin } from "@/features/auth/api/use-login";
 import { useRouter } from "next/navigation";
 
 

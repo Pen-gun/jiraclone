@@ -7,8 +7,8 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DottedSeparator } from "@/components/dotted-seperator";
-import { useLogout } from "@/features/api/use-logout";
-import { useCurrent } from "@/features/api/use-current";
+import { useLogout } from "@/features/auth/api/use-logout";
+import { useCurrent } from "@/features/auth/api/use-current";
 import { Spinner } from "@/components/spinner";
 import { LogOut } from "lucide-react";
 import { redirect } from "next/navigation";
