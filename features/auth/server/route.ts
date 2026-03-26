@@ -81,7 +81,7 @@ const app = new Hono()
         zValidator("json", onBoardingFormSchema),
         async (c) => {
             const { fullName, age, bio } = c.req.valid("json");
-            const user = c.get("account");
+            const user = c.get("user");
             try {
                 const updatedUser = await prisma.user.update({
                     where: { id: user.id },
@@ -92,8 +92,6 @@ const app = new Hono()
                         onBoardingCompleted: true,
                     },
                 });
-                console.log("Updated onboarding for:", updatedUser.email);
-
                 const { password, ...safeUser } = updatedUser;
                 return c.json(safeUser, 200);
             } catch (error) {
@@ -119,7 +117,7 @@ const app = new Hono()
         return c.json({ message: "Logged out successfully" }, 200);
     })
     .get("/me", sessionMiddleware, async (c) => {
-        const user = c.get("account");
+        const user = c.get("user");
         if (!user) {
             return c.json({ error: "Unauthorized" }, 401);
         }

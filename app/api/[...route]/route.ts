@@ -2,11 +2,13 @@ import { handle } from 'hono/vercel'
 import { Hono } from 'hono'
 
 import auth from '@/features/auth/server/route'
+import workspace from '@/features/workspaces/server/route'
 
 const app = new Hono().basePath('/api')
 
 const routes = app
     .route('/auth', auth)
+    .route('/workspaces', workspace)
 
 export type AppType = typeof routes;
 

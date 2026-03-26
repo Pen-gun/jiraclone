@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { InferRequestType, InferResponseType } from "hono";
 
 import {client} from "@/lib/rcp";
@@ -7,14 +7,13 @@ type ResponseType = InferResponseType<typeof client.api.auth.onboarding['$post']
 type RequestType = InferRequestType<typeof client.api.auth.onboarding['$post']>
 
 export const useOnboarding = () => {
-
+    const queryClient = useQueryClient();
     const mutation = useMutation<
         ResponseType,
         Error,
         RequestType
     >({
         mutationFn: async ({json}) => {
-            try {
                 const response = await client.api.auth.onboarding['$post']({json});
                 if (!response.ok) {
                     const error = (await response
@@ -23,9 +22,12 @@ export const useOnboarding = () => {
                     throw new Error(error?.error ?? error?.message ?? "Onboarding failed");
                 }
                 return await response.json();
-            } catch (error) {
-                throw {error: error instanceof Error ? error.message : "An unknown error occurred"};
-            }
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ["dashboard"]});
+        },
+        onError: (error) => {
+            console.error("Onboarding error:", error);
         }
     })
     return mutation;

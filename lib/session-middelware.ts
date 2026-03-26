@@ -4,7 +4,7 @@ import { createMiddleware } from "hono/factory";
 import { prisma } from "@/lib/prismaHelper";
 import { AUTH_COOKIE_NAME } from "@/features/auth/constant";
 
-type Account = {
+type user = {
   id: string;
   email: string;
   fullName: string | null;
@@ -14,7 +14,7 @@ type Account = {
 };
 
 
-export const sessionMiddleware = createMiddleware<{ Variables: {account: Account} }>(async (c, next) => {
+export const sessionMiddleware = createMiddleware<{ Variables: {user: user} }>(async (c, next) => {
     const session = await getCookie(c, AUTH_COOKIE_NAME);
     if (!session) {
         return c.json({ error: "Unauthorized" }, 401);
@@ -49,6 +49,6 @@ export const sessionMiddleware = createMiddleware<{ Variables: {account: Account
         return c.json({ error: "Session expired" }, 401);
     }
 
-    c.set("account", dbSession.user);
+    c.set("user", dbSession.user);
     return next();
 });
