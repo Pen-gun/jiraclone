@@ -1,5 +1,4 @@
 "use client";
-import { useEffect } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
 	DropdownMenu,
@@ -12,25 +11,18 @@ import { useLogout } from "@/features/api/use-logout";
 import { useCurrent } from "@/features/api/use-current";
 import { Spinner } from "@/components/spinner";
 import { LogOut } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { redirect } from "next/navigation";
 
 
 export const DashboardCard = () => {
-	const router = useRouter();
-	const { data: user, isLoading, isFetching, isFetched } = useCurrent();
+	const { data: user, isLoading } = useCurrent();
 	const { mutate: logout } = useLogout();
-	const shouldRedirect = !user || !user.email || user.fullName === "Unknown User";
-
-	useEffect(() => {
-		if (!isLoading && !isFetching && isFetched && shouldRedirect) {
-			router.replace("/sign-in");
-		}
-	}, [isLoading, isFetching, isFetched, shouldRedirect, router]);
-
-	if (isLoading || isFetching || shouldRedirect) {
+	if (isLoading) {
 		return <Spinner />;
 	}
-
+	if (!user || !user.email || user.fullName === "Unknown User") {
+    	redirect("/sign-in");
+	}
 	const { fullName, email } = user || {};
 	const avatarFallback = fullName ? fullName.charAt(0).toUpperCase() : "U";
 	return (
