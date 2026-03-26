@@ -18,7 +18,6 @@ export const useLogin = () => {
       if (!response.ok) {
         throw new Error("Login failed");
       }
-
       return data as ResponseType;
     },
   });
