@@ -11,7 +11,6 @@ const app = new Hono()
         sessionMiddleware,
         async (c) => {
             const user = c.get("user");
-            console.log("route.ts workspace create: user", user);
             const { name, description } = c.req.valid("json");
             const workspace = await prisma.project.create({
                 data: {
