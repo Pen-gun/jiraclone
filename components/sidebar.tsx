@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
-import { navigation } from "@/components/navigation";
+import { Navigation } from "@/components/navigation";
+import { DottedSeparator } from "./dotted-seperator";
 
 export const Sidebar = () => {
     return(
@@ -8,7 +9,8 @@ export const Sidebar = () => {
             <Link href='/' >
                 <Image src="/logo.svg" alt="Logo" width={32} height={32} />
             </Link>
-            {navigation()}
+            <DottedSeparator className="my-4" />
+            {Navigation()}
         </aside>
     )
 }
