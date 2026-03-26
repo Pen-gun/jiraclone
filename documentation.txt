@@ -6,6 +6,7 @@ Overview
 - The project uses Next.js App Router for UI and Hono mounted at `app/api/[...route]/route.ts` for API endpoints.
 - Authentication is database-session based using Prisma and PostgreSQL.
 - Frontend data reads and mutations are managed with TanStack React Query.
+- Workspace creation UI is implemented and currently persists to the `Project` model.
 
 Architecture
 
@@ -15,16 +16,17 @@ Architecture
 - Shared primitives live in `components/ui`.
 
 2. API layer
-- Hono routes are grouped under `/api/auth`.
+- Hono routes are grouped under `/api/auth` and `/api/workspaces`.
 - Implemented endpoints:
   - `POST /api/auth/login`
   - `POST /api/auth/register`
   - `POST /api/auth/onboarding`
   - `POST /api/auth/logout`
   - `GET /api/auth/me`
+  - `POST /api/workspaces`
 
 3. Data layer
-- Prisma models include `User` and `Session`.
+- Prisma models include `User`, `Session`, `Project`, `Task`, and `Comment`.
 - Session rows contain `userId`, `createdAt`, `updatedAt`, and `expiresAt`.
 - Cookie `auth_token` stores the session id.
 
@@ -60,15 +62,25 @@ Authentication Flow
 - Deletes the session row if found.
 - Clears cookie on response.
 
+Workspace Flow
+
+1. Create workspace
+- `CreateWorkspaceForm` validates `name` and optional `description` with Zod.
+- `useCreateWorkspace` calls `POST /api/workspaces`.
+- Route uses `sessionMiddleware` and creates a `Project` row with `ownerId` of current user.
+- On success, form resets and `workspaces` query key is invalidated.
+
 Frontend Integration
 
 1. API hooks
-- API hooks live in `features/api`:
+- Auth hooks live in `features/auth/api`:
   - `use-current.ts`
   - `use-login.ts`
   - `use-logout.tsx`
   - `use-onboarding.ts`
   - `use-register.ts`
+- Workspace hooks live in `features/workspaces/api`:
+  - `use-create-workspace.ts`
 
 2. UI behavior
 - Submit handlers trigger mutation hooks.
@@ -84,27 +96,29 @@ Required:
 - `NODE_ENV`
 
 Cookie Notes
-- Current code sets `httpOnly: true` and `sameSite: "strict"`.
-- Local development uses `secure: false`.
-- Production should use environment-aware cookie security settings.
+- Current code sets `httpOnly: true`, `sameSite: "Lax"`, and `secure: true`.
+- In localhost over HTTP, `secure: true` can block session cookies.
+- Production should keep `secure: true`; local development should use environment-aware cookie security settings.
 
 Current Status
 
 Completed
 - Auth pages and form validation.
 - Auth API route wiring.
-- Prisma schema for user and session.
+- Prisma schema for user, session, project, task, and comment.
 - Session create/read/delete flow.
 - Server-side home page auth gate plus client-side current user query.
+- Workspace create form, schema, route, and mutation hook.
 
 In progress
 - Password hashing and auth hardening.
 - Consistent frontend error typing.
 - Broader route guard coverage.
+- Workspace/project naming consistency across UI and Prisma.
 
 Not implemented
 - Automated tests.
-- Jira entities like Workspace, Project, and Issue.
+- Issue workflow UI (board/list) and CRUD beyond create.
 
 Known Risks
 
@@ -113,6 +127,7 @@ Known Risks
 
 2. Cookie defaults
 - Cookie flags are not yet centralized by environment.
+- Current `secure: true` behavior can break localhost auth persistence.
 
 3. Hook error consistency
 - Some hooks still throw non-Error objects.
@@ -128,4 +143,5 @@ Recommended Next Steps
 - Add e2e auth flow test.
 
 3. Product foundation
-- Add Workspace/Project/Issue models and CRUD APIs.
+- Add project/task list, detail, update, and delete APIs and pages.
+- Add issue-style status transitions and board/list views.

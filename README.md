@@ -2,7 +2,7 @@
 
 A Jira-inspired project management app built with Next.js App Router, TypeScript, Hono, Prisma, and a shadcn-style component system.
 
-Current milestone: authentication and onboarding flow with database-backed sessions.
+Current milestone: authentication, onboarding, and first workspace creation flow with database-backed sessions.
 
 ## Stack
 
@@ -20,10 +20,12 @@ Current milestone: authentication and onboarding flow with database-backed sessi
 
 - Sign in, sign up, onboarding, and root dashboard experience
 - Auth API endpoints under `/api/auth`
+- Workspace create endpoint under `/api/workspaces` (stored in `Project` model)
 - Session table with cookie-based auth token (`auth_token`)
 - Server-side auth gate on the home page
 - Client-side current-user fetch via React Query
 - Logout endpoint that clears session record and cookie
+- Prisma domain models for `Project`, `Task`, and `Comment`
 
 ## Repository Layout
 
@@ -41,15 +43,20 @@ app/
 features/
   action.ts
   schemas.ts
-  api/
-    use-current.ts
-    use-login.ts
-    use-logout.tsx
-    use-onboarding.ts
-    use-register.ts
   auth/
+    api/
+      use-current.ts
+      use-login.ts
+      use-logout.tsx
+      use-onboarding.ts
+      use-register.ts
     components/
     constant.ts
+    server/route.ts
+  workspaces/
+    api/use-create-workspace.ts
+    components/create-workspace-form.tsx
+    schemas.ts
     server/route.ts
 
 lib/
@@ -114,11 +121,20 @@ npm run lint
 4. `features/action.ts` performs server-side user resolution directly through Prisma for page gating.
 5. Logout deletes the session record and clears the cookie.
 
+## Workspace Flow (Current)
+
+1. `CreateWorkspaceForm` validates input with Zod.
+2. `useCreateWorkspace` posts to `/api/workspaces`.
+3. Hono route validates payload and requires `sessionMiddleware`.
+4. Route creates a `Project` row with `ownerId` set to current user.
+5. On success, form resets and `workspaces` query key is invalidated.
+
 ## Known Gaps
 
 - Passwords are still stored and compared in plain text.
 - Tests are not implemented yet.
-- Core Jira domain entities are not implemented yet.
+- Workspace naming in frontend currently maps to `Project` in Prisma and should be unified later.
+- Localhost login issues can occur if cookie security flags are not environment-aware.
 
 ## Next Milestones
 
@@ -128,9 +144,9 @@ npm run lint
 - Add session rotation and revoke-all support
 
 2. Product foundation
-- Add Workspace, Project, and Issue schema
-- Build CRUD APIs for project and issue workflows
-- Build first board/list UI
+- Keep Workspace and Project naming consistent across Prisma and UI
+- Add list/read/update/delete APIs for projects and tasks
+- Build first board/list UI for tasks
 
 3. Quality pass
 - Add integration tests for auth endpoints
