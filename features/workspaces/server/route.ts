@@ -10,7 +10,7 @@ const app = new Hono()
         sessionMiddleware, 
         async (c) => {
             const user = c.get("user");
-            const workspaces = await prisma.project.findMany({
+            const workspaces = await prisma.workspace.findMany({
                 where: {
                     ownerId: user.id,
                 },
@@ -23,11 +23,10 @@ const app = new Hono()
         sessionMiddleware,
         async (c) => {
             const user = c.get("user");
-            const { name, description } = c.req.valid("json");
-            const workspace = await prisma.project.create({
+            const { name } = c.req.valid("json");
+            const workspace = await prisma.workspace.create({
                 data: {
                     name,
-                    description,
                     ownerId: user.id,
                 },
             });
