@@ -3,6 +3,7 @@ import { zValidator } from "@hono/zod-validator";
 import { createWorkspaceSchema } from "../schemas";
 import { sessionMiddleware } from "@/lib/session-middelware";
 import { prisma } from "@/lib/prismaHelper";
+import { MemberRole } from "@/features/members/tpyes";
 
 const app = new Hono()
     .get(
@@ -28,6 +29,13 @@ const app = new Hono()
                 data: {
                     name,
                     ownerId: user.id,
+                },
+            });
+            const member = await prisma.workspaceMember.create({
+                data: {
+                    userId: user.id,
+                    workspaceId: workspace.id,
+                    role: MemberRole.ADMIN,
                 },
             });
             return c.json(workspace, 201);
