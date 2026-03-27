@@ -104,9 +104,9 @@ export const CreateWorkspaceForm = ({ onCancel }: CreateWorkspaceFormProps) => {
                     </FieldGroup>
                     <DottedSeparator className="my-6" />
                     <div className="flex justify-between">
-                        <Button type="button" variant="outline" onClick={onCancel}>
+                        {/* <Button type="button" variant="outline" onClick={onCancel}>
                             Cancel
-                        </Button>
+                        </Button> */}
                         <Button type="submit" className="mr-3" disabled={isPending}>
                             {isPending ? "Creating..." : "Create Workspace"}
                         </Button>
