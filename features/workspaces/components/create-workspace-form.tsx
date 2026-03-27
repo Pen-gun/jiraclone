@@ -15,7 +15,6 @@ import { DottedSeparator } from "@/components/dotted-seperator";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useCreateWorkspace } from "../api/use-create-workspace";
-import { on } from "events";
 import { showJsonToast } from "@/components/toaster";
 
 interface CreateWorkspaceFormProps {
@@ -28,7 +27,6 @@ export const CreateWorkspaceForm = ({ onCancel }: CreateWorkspaceFormProps) => {
         resolver:zodResolver(createWorkspaceSchema),
         defaultValues: {
             name: "",
-            description: "",
         }
     });
     const onSubmit = async (values: z.infer<typeof createWorkspaceSchema>) => {
@@ -79,34 +77,12 @@ export const CreateWorkspaceForm = ({ onCancel }: CreateWorkspaceFormProps) => {
                                 </Field>
                             )}
                         />
-                        <Controller
-                            name="description"
-                            control={form.control}
-                            render={({ field, fieldState }) => (
-                                <Field data-invalid = {fieldState.invalid}>
-                                    <FieldLabel>
-                                        Workspace Description
-                                    </FieldLabel>
-                                    <Input
-                                    {...field}
-                                    aria-invalid={fieldState.invalid}
-                                    placeholder="Enter workspace description"
-                                    autoComplete="off"
-                                    />
-                                    {fieldState.error && (
-                                        <FieldError>
-                                            {fieldState.error.message}
-                                        </FieldError>
-                                    )}
-                                </Field>
-                            )}
-                        />
                     </FieldGroup>
                     <DottedSeparator className="my-6" />
                     <div className="flex justify-between">
-                        <Button type="button" variant="outline" onClick={onCancel}>
+                        {/* <Button type="button" variant="outline" onClick={onCancel}>
                             Cancel
-                        </Button>
+                        </Button> */}
                         <Button type="submit" className="mr-3" disabled={isPending}>
                             {isPending ? "Creating..." : "Create Workspace"}
                         </Button>

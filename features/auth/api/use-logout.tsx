@@ -11,7 +11,9 @@ export const useLogout = () => {
             return await response.json();
         },
         onSuccess: () => {
-            queryClient.removeQueries({ queryKey: ["dashboard"] });
+            ["dashboard", "workspaces"].forEach(key => {
+                queryClient.removeQueries({ queryKey: [key] });
+            });
         }
     })
     return mutation;
