@@ -5,6 +5,18 @@ import { sessionMiddleware } from "@/lib/session-middelware";
 import { prisma } from "@/lib/prismaHelper";
 
 const app = new Hono()
+    .get(
+        "/", 
+        sessionMiddleware, 
+        async (c) => {
+            const user = c.get("user");
+            const workspaces = await prisma.project.findMany({
+                where: {
+                    ownerId: user.id,
+                },
+            });
+            return c.json(workspaces);
+    })
     .post(
         "/",
         zValidator("json", createWorkspaceSchema),
