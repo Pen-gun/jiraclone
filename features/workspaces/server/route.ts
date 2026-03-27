@@ -4,6 +4,7 @@ import { createWorkspaceSchema } from "../schemas";
 import { sessionMiddleware } from "@/lib/session-middelware";
 import { prisma } from "@/lib/prismaHelper";
 import { MemberRole } from "@/features/members/tpyes";
+import { generateInviteCode } from "@/lib/utils";
 
 const app = new Hono()
     .get(
@@ -11,11 +12,18 @@ const app = new Hono()
         sessionMiddleware, 
         async (c) => {
             const user = c.get("user");
-            const workspaces = await prisma.workspace.findMany({
+            const members = await prisma.workspaceMember.findMany({
                 where: {
-                    ownerId: user.id,
+                    userId: user.id,
+                },
+                include: {
+                    workspace: true,
                 },
             });
+            if (!members) {
+                return c.json([], 200);
+            }
+            const workspaces = members.map((member) => member.workspace);
             return c.json(workspaces);
     })
     .post(
@@ -29,9 +37,10 @@ const app = new Hono()
                 data: {
                     name,
                     ownerId: user.id,
+                    inviteCode: generateInviteCode(6),
                 },
             });
-            const member = await prisma.workspaceMember.create({
+            await prisma.workspaceMember.create({
                 data: {
                     userId: user.id,
                     workspaceId: workspace.id,
