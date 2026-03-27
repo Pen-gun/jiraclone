@@ -20,12 +20,12 @@ Current milestone: authentication, onboarding, and first workspace creation flow
 
 - Sign in, sign up, onboarding, and root dashboard experience
 - Auth API endpoints under `/api/auth`
-- Workspace create endpoint under `/api/workspaces` (stored in `Project` model)
+- Workspace create/list endpoints under `/api/workspaces` (stored in `Workspace` + `WorkspaceMember` models)
 - Session table with cookie-based auth token (`auth_token`)
 - Server-side auth gate on the home page
 - Client-side current-user fetch via React Query
 - Logout endpoint that clears session record and cookie
-- Prisma domain models for `Project`, `Task`, and `Comment`
+- Prisma domain models for `Workspace`, `Project`, `Task`, and `Comment`
 
 ## Repository Layout
 
@@ -36,9 +36,13 @@ app/
     onboarding/page.tsx
     sign-in/page.tsx
     sign-up/page.tsx
+  (dashboard)/
+    layout.tsx
+    loading.tsx
+    page.tsx
+    workspaces/[workspaceId]/page.tsx
   api/[...route]/route.ts
   layout.tsx
-  page.tsx
 
 features/
   action.ts
@@ -126,15 +130,16 @@ npm run lint
 1. `CreateWorkspaceForm` validates input with Zod.
 2. `useCreateWorkspace` posts to `/api/workspaces`.
 3. Hono route validates payload and requires `sessionMiddleware`.
-4. Route creates a `Project` row with `ownerId` set to current user.
+4. Route creates a `Workspace` row and a `WorkspaceMember` row with `ADMIN` role for the creator.
 5. On success, form resets and `workspaces` query key is invalidated.
 
 ## Known Gaps
 
 - Passwords are still stored and compared in plain text.
 - Tests are not implemented yet.
-- Workspace naming in frontend currently maps to `Project` in Prisma and should be unified later.
+- Workspace and Project both exist in Prisma; Project CRUD/UI is still pending.
 - Localhost login issues can occur if cookie security flags are not environment-aware.
+- Home redirects to `/workspaces/create` when no workspaces exist, but that page route is not implemented yet.
 
 ## Next Milestones
 

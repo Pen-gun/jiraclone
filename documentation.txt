@@ -1,158 +1,343 @@
-Jira Clone Technical Documentation
+# Jira Clone - Current Project Documentation
 
-Version: March 2026
+Last updated: 2026-03-27
+Status: In-progress prototype with working authentication + onboarding + basic workspace creation
 
-Purpose
-- This document is a from-scratch onboarding runbook for new or junior developers.
-- If you follow all steps in order, you should reach the current working state of this repository.
+## 1) Project Overview
 
-Current Product Scope
-- Auth: sign up, sign in, onboarding, current-user, logout.
-- Dashboard root page with server auth gate.
-- Workspace create form and API.
-- Note: workspace UI currently stores records in Prisma `Project` model.
+This project is a Jira-inspired web app built with Next.js, React, TypeScript, Hono, Prisma, and PostgreSQL.
 
-Tech Stack
-- Next.js 16 App Router
-- React 19 + TypeScript
-- Hono API mounted in Next route handler
-- Prisma + PostgreSQL
-- TanStack React Query
-- React Hook Form + Zod
-- Tailwind CSS + shadcn UI style components
+Current main purpose:
+- Authenticate users (sign up, sign in, sign out)
+- Collect onboarding profile data
+- Create and list workspaces for authenticated users
+- Route authenticated users to their first workspace
 
-Prerequisites
-- Node.js 20 or newer
-- npm 10 or newer
-- PostgreSQL database available locally or remote
-- Git installed
+What this means right now:
+- The app has a working account and session system.
+- Workspace creation exists at API + UI component level.
+- Task and comment features are defined in database schema but not implemented in UI/API yet.
 
-Onboarding Setup (From Scratch)
+## 2) Tech Stack
 
-1. Clone and install
-- `git clone <repo-url>`
-- `cd jiraclone`
-- `npm install`
+- Framework: Next.js 16 (App Router)
+- Language: TypeScript
+- UI: React 19 + Tailwind CSS v4 + custom UI primitives (Radix/shadcn-style)
+- API layer: Hono (mounted under Next.js route handler)
+- Database: PostgreSQL
+- ORM: Prisma
+- Data fetching/state: TanStack React Query
+- Validation/forms: Zod + React Hook Form
 
-2. Create environment files
-- Create `.env` and `.env.local` in project root.
-- Add values like:
+## 3) Setup Instructions (Reproduce Current State)
 
-`DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DB_NAME?schema=public"`
-`NEXT_PUBLIC_API_URL="http://localhost:3000"`
-`NODE_ENV="development"`
+### Prerequisites
 
-3. Generate Prisma client and apply schema
-- `npx prisma generate`
-- `npx prisma migrate dev`
+- Node.js 20+ (recommended)
+- npm
+- PostgreSQL running locally (or another reachable PostgreSQL instance)
 
-4. Start app
-- `npm run dev`
-- Open `http://localhost:3000`
+### Step 1: Install dependencies
 
-5. First-run verification
-- Open `/sign-up` and create an account.
-- Complete onboarding.
-- Confirm `/` loads and does not redirect to sign-in while logged in.
-- Click logout and verify redirect to `/sign-in`.
+Run from project root:
 
-Expected API Endpoints
+```bash
+npm install
+```
+
+### Step 2: Configure environment variables
+
+Create/update two files in the project root:
+
+1. `.env`
+```env
+DATABASE_URL="postgresql://<username>:<password>@<host>:<port>/<database>?schema=public"
+JWT_SECRET="replace-with-a-real-secret"
+```
+
+2. `.env.local`
+```env
+NEXT_PUBLIC_API_URL="http://localhost:3000"
+```
+
+Notes:
+- `DATABASE_URL` is required by Prisma and server-side database code.
+- `NEXT_PUBLIC_API_URL` is required by the Hono RPC client in `lib/rcp.ts`.
+- `JWT_SECRET` currently exists in environment config but is not used in code yet.
+
+### Step 3: Generate Prisma client + run migrations
+
+```bash
+npx prisma generate
+npx prisma migrate dev
+```
+
+### Step 4: Start development server
+
+```bash
+npm run dev
+```
+
+Open: `http://localhost:3000`
+
+### Useful scripts
+
+```bash
+npm run dev
+npm run build
+npm run start
+npm run lint
+```
+
+## 4) Current Code Structure
+
+This section explains the important folders as they exist now.
+
+### `app/`
+
+- `app/layout.tsx`
+	- Global layout.
+	- Adds query provider and toast UI.
+
+- `app/(auth)/`
+	- Auth pages and layout:
+	- `sign-in/page.tsx`
+	- `sign-up/page.tsx`
+	- `onboarding/page.tsx`
+	- `layout.tsx` contains top nav and auth-page wrapper.
+
+- `app/(dashboard)/`
+	- Protected dashboard area:
+	- `layout.tsx` renders sidebar + navbar.
+	- `page.tsx` does server-side redirect logic based on auth/workspaces.
+	- `workspaces/[workspaceId]/page.tsx` currently placeholder UI.
+
+- `app/api/[...route]/route.ts`
+	- Hono app entrypoint mounted at `/api`.
+	- Routes currently include `/api/auth/*` and `/api/workspaces/*`.
+
+### `features/`
+
+- `features/action.ts`
+	- Server helper to resolve current user from session cookie.
+
+- `features/schemas.ts`
+	- Zod schemas for sign-in, sign-up, onboarding.
+
+- `features/auth/`
+	- `server/route.ts`: auth API endpoints.
+	- `api/*`: React Query hooks for auth calls.
+	- `components/*`: sign-in/sign-up/onboarding/dashboard user UI.
+	- `constant.ts`: auth cookie name.
+
+- `features/workspaces/`
+	- `server/route.ts`: create/list workspace endpoints.
+	- `action.ts`: server helper to get user workspaces.
+	- `api/*`: React Query hooks.
+	- `components/*`: workspace form + avatar.
+	- `hooks/use-workspace-id.ts`: route param helper.
+
+- `features/members/tpyes.ts`
+	- Defines `MemberRole` enum used for workspace membership role.
+	- File name contains typo (`tpyes`).
+
+### `lib/`
+
+- `prismaHelper.ts`: Prisma client setup with PostgreSQL adapter.
+- `rcp.ts`: typed Hono client configured with cookies (`credentials: include`).
+- `session-middelware.ts`: request auth middleware for protected endpoints.
+- `sesson-cleanup.ts`: session cleanup utility (currently not wired up).
+- `utils.ts`: className merge helper + invite code generator.
+
+### `components/`
+
+- Layout/navigation: `sidebar.tsx`, `navbar.tsx`, `mobile-sidebar.tsx`, `navigation.tsx`, `workspace-switcher.tsx`
+- Utility UI: `toaster.tsx`, `spinner.tsx`, `responsive-modal.tsx`, `dotted-seperator.tsx`
+- `components/ui/`: reusable base UI primitives.
+
+### `prisma/`
+
+- `schema.prisma`: data models and enums.
+- `migrations/*`: migration history.
+
+### `generated/prisma/`
+
+- Generated Prisma client/types from schema. Do not edit manually.
+
+## 5) Current Functionality (What Works Today)
+
+### A) Authentication
+
+Implemented endpoints in `features/auth/server/route.ts`:
+
+- `POST /api/auth/register`
+	- Creates user with email/password.
+	- Creates session row.
+	- Sets `auth_token` cookie.
+
+- `POST /api/auth/login`
+	- Validates credentials.
+	- Creates new session row.
+	- Sets `auth_token` cookie.
+
+- `POST /api/auth/onboarding` (protected)
+	- Updates `fullName`, `age`, `bio`.
+	- Marks `onBoardingCompleted` true.
+
+- `POST /api/auth/logout` (protected)
+	- Deletes current session.
+	- Clears auth cookie.
+
+- `GET /api/auth/me` (protected)
+	- Returns current authenticated user from middleware context.
+
+Client hooks used by forms/components:
+- `useLogin`, `useRegister`, `useOnboarding`, `useLogout`, `useCurrent`
+
+### B) Session handling
+
+- Session model exists in DB (`Session` table).
+- `sessionMiddleware` checks cookie -> session -> expiry -> user.
+- Expired sessions are deleted when detected.
+- Auth cookie key is `auth_token`.
+
+### C) Workspace flow
+
+Implemented endpoints in `features/workspaces/server/route.ts`:
+
+- `GET /api/workspaces` (protected)
+	- Returns workspaces for current user via membership table.
+
+- `POST /api/workspaces` (protected)
+	- Creates workspace.
+	- Generates invite code.
+	- Adds creator as `ADMIN` in `WorkspaceMember`.
+
+Client-side:
+- `CreateWorkspaceForm` submits workspace creation.
+- `WorkspaceSwitcher` displays user workspaces and route-switches by id.
+
+### D) Routing behavior on home page
+
+In `app/(dashboard)/page.tsx`:
+- If not authenticated -> redirect to `/sign-in`
+- If authenticated and has 0 workspaces -> redirect to `/workspaces/create`
+- If authenticated and has workspaces -> redirect to first workspace id
+
+Important current gap:
+- `/workspaces/create` page route is not implemented yet, even though redirect expects it.
+
+## 6) Usage Examples (How to Run/Test Now)
+
+Use these manual tests after running `npm run dev`.
+
+### Example 1: New user flow
+
+1. Visit `/sign-up`
+2. Register with email + password
+3. You should be redirected to `/onboarding`
+4. Submit full profile form
+5. You should be redirected to `/`
+
+Expected result:
+- If your account has no workspace, redirect attempts to `/workspaces/create`.
+
+### Example 2: Existing user login
+
+1. Visit `/sign-in`
+2. Enter valid credentials
+3. On success, app does `router.replace('/')` + `router.refresh()`
+4. Home page redirects based on workspace availability
+
+### Example 3: Logout
+
+1. Open dashboard top-right avatar menu
+2. Click log out
+3. Session is deleted and auth cookie removed
+4. Protected views should push back to sign-in
+
+### Example 4: API smoke checks (optional)
+
+You can test endpoints with any REST client:
+
 - `POST /api/auth/register`
 - `POST /api/auth/login`
-- `POST /api/auth/onboarding`
-- `POST /api/auth/logout`
-- `GET /api/auth/me`
-- `POST /api/workspaces`
+- `GET /api/auth/me` (requires auth cookie)
+- `POST /api/workspaces` (requires auth cookie)
+- `GET /api/workspaces` (requires auth cookie)
 
-Project Structure (Important Paths)
-- `app/api/[...route]/route.ts` mounts Hono routes.
-- `features/auth/server/route.ts` auth endpoints.
-- `lib/session-middelware.ts` cookie/session validation.
-- `features/action.ts` server-side current-user gate for pages.
-- `features/auth/api/*` auth client hooks.
-- `features/workspaces/components/create-workspace-form.tsx` workspace create UI.
-- `features/workspaces/server/route.ts` workspace create API.
-- `features/workspaces/schemas.ts` workspace form/server validation.
-- `prisma/schema.prisma` data models.
+## 7) Current Data Model (Simple View)
 
-Data Model Snapshot
+Main entities in `prisma/schema.prisma`:
+
 - `User`
 - `Session`
+- `Workspace`
+- `WorkspaceMember`
 - `Project`
 - `Task`
 - `Comment`
 
-Current Flow Details
+Relationship highlights:
+- User owns workspaces and projects.
+- User joins workspaces via `WorkspaceMember` with role enum (`MEMBER`/`ADMIN`).
+- Workspace has projects.
+- Project has tasks.
+- Task has comments.
 
-Auth flow
-1. Register or login request hits Hono auth route.
-2. Server creates `Session` row and sets `auth_token` cookie.
-3. Middleware reads cookie and resolves user.
-4. `/api/auth/me` returns current user when authenticated.
-5. Logout deletes session and clears cookie.
+## 8) Known Issues / Limitations (As Of This Version)
 
-Workspace flow
-1. Create form validates with Zod.
-2. Mutation posts to `/api/workspaces`.
-3. Route checks session middleware and writes to `Project`.
-4. On success, form resets and query invalidates.
+- Passwords are currently stored and compared as plain text.
+- Auth cookie uses `secure: true` in auth routes, which can break localhost over HTTP.
+- `/workspaces/create` redirect target exists in logic but page is missing.
+- Workspace detail page is currently placeholder only.
+- Navigation active state is hardcoded (`isActive = false`).
+- Session cleanup utility exists but is not currently wired into app startup.
+- Several filenames contain typos (`tpyes`, `middelware`, `sesson`, `seperator`).
 
-Common Day-1 Tasks
+## 9) Notes For Future Updates (Easy-To-Extend Section)
 
-Add a new API route
-1. Create feature route file under `features/<feature>/server/route.ts`.
-2. Mount route inside `app/api/[...route]/route.ts`.
-3. Add zod schema for request validation.
-4. Add hook under feature `api` folder.
-5. Connect UI form or action.
+Use this structure every time you make progress.
 
-Add a new form
-1. Add zod schema.
-2. Build client component with React Hook Form.
-3. Submit via mutation hook.
-4. Add success and error handling.
+### Update Template
 
-Troubleshooting Guide
+Date:
+Change summary:
+Files touched:
+Behavior changes:
+Migration required: yes/no
+Env var changes: yes/no
+Manual test performed:
+Known side effects:
 
-Issue: login succeeds but user returns to sign-in
-1. Check `POST /api/auth/login` returns 200.
-2. Check response contains `Set-Cookie` for `auth_token`.
-3. Check next `GET /api/auth/me` status.
-4. If cookie is missing on localhost, review secure cookie flag in auth route.
+### Planned Next Features
 
-Issue: `useForm` export not found / react-server import
-1. Ensure form component begins with `"use client"`.
-2. Ensure component is not treated as server-only through import chain.
+- [ ] Add password hashing (bcrypt/argon2)
+- [ ] Make cookie `secure` env-aware (production only)
+- [ ] Implement `/workspaces/create` page
+- [ ] Implement workspace detail page content
+- [ ] Add project/task CRUD APIs
+- [ ] Add task UI (list/board)
+- [ ] Add invite/join workspace flow
+- [ ] Add automated tests (auth + workspace flows)
 
-Issue: Event handlers cannot be passed to Client Component props
-1. Do not pass raw function props from server component into client component unless boundary is correct.
-2. Move interactivity into a client component wrapper.
+### Changelog Placeholder
 
-Issue: redirected to `/dashBoard` 404
-1. Use `/` for dashboard root unless route exists.
-2. Keep path names consistent with app directory segments.
+- 2026-03-27: Initial documentation draft based on full codebase read.
 
-Known Risks (Current)
-- Passwords are currently plain text.
-- Cookie policy is not environment-aware in all paths.
-- Some frontend code still uses loose error typing (`any`).
-- Workspace naming in UI differs from DB model naming (`Project`).
+## 10) Quick Onboarding For A New Developer
 
-Definition of Done For Local Setup
-- `npm run dev` starts without blocking runtime errors.
-- Register, login, onboarding, and logout flow works.
-- `/api/auth/me` returns 200 when logged in and 401 after logout.
-- Workspace creation succeeds from dashboard form.
+If you are new to this codebase, do this first:
 
-Recommended Next Steps
-1. Security
-- Add password hashing.
-- Make cookie `secure` environment-aware.
+1. Read sections 1, 3, and 5 in this document.
+2. Run setup steps exactly in section 3.
+3. Walk through the manual tests in section 6.
+4. Open these files in order:
+	 - `app/api/[...route]/route.ts`
+	 - `features/auth/server/route.ts`
+	 - `features/workspaces/server/route.ts`
+	 - `features/action.ts`
+	 - `app/(dashboard)/page.tsx`
+5. Then move to UI components under `features/auth/components` and `components/sidebar.tsx`.
 
-2. Quality
-- Add integration tests for auth and workspace create endpoint.
-- Add e2e test for auth happy path.
-
-3. Product
-- Align naming: Workspace in UI and model layer.
-- Add read/list/update/delete for projects and tasks.
+This order helps you understand backend flow first, then frontend behavior.

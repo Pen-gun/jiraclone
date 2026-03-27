@@ -1,5 +1,5 @@
 "use client";
-import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "./ui/button";
 import { MenuIcon} from "lucide-react";
 import { Sidebar } from "./sidebar";
@@ -22,6 +22,9 @@ export const MobileSidebar = () => {
             </SheetTrigger>
             <SheetContent side="left" className="p-0">
                 <SheetTitle className="sr-only">Main navigation</SheetTitle>
+                <SheetDescription className="sr-only">
+                    Navigate between workspaces and pages.
+                </SheetDescription>
                 <Sidebar />
             </SheetContent>
         </Sheet>

@@ -1,6 +1,9 @@
 -- CreateEnum
 CREATE TYPE "TaskStatus" AS ENUM ('TODO', 'IN_PROGRESS', 'DONE');
 
+-- CreateEnum
+CREATE TYPE "Role" AS ENUM ('MEMBER', 'ADMIN');
+
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
@@ -19,6 +22,7 @@ CREATE TABLE "Workspace" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "ownerId" TEXT NOT NULL,
+    "inviteCode" TEXT NOT NULL DEFAULT '121212',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Workspace_pkey" PRIMARY KEY ("id")
@@ -29,6 +33,7 @@ CREATE TABLE "WorkspaceMember" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "workspaceId" TEXT NOT NULL,
+    "role" "Role" NOT NULL DEFAULT 'MEMBER',
 
     CONSTRAINT "WorkspaceMember_pkey" PRIMARY KEY ("id")
 );
@@ -83,6 +88,9 @@ CREATE TABLE "Session" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Workspace_inviteCode_key" ON "Workspace"("inviteCode");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "WorkspaceMember_userId_workspaceId_key" ON "WorkspaceMember"("userId", "workspaceId");
