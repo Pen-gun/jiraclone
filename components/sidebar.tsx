@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { Navigation } from "@/components/navigation";
@@ -13,7 +15,7 @@ export const Sidebar = () => {
             <DottedSeparator className="my-4" />
             <WorkspaceSwitcher />
             <DottedSeparator className="my-4" />
-            {Navigation()}
+            <Navigation />
         </aside>
     )
 }

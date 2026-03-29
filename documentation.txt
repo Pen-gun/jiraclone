@@ -1,7 +1,7 @@
 # Jira Clone - Current Project Documentation
 
-Last updated: 2026-03-27
-Status: In-progress prototype with working authentication + onboarding + basic workspace creation
+Last updated: 2026-03-29
+Status: In-progress prototype with working authentication + onboarding + workspace create/list/update flow
 
 ## 1) Project Overview
 
@@ -112,6 +112,11 @@ This section explains the important folders as they exist now.
 	- `page.tsx` does server-side redirect logic based on auth/workspaces.
 	- `workspaces/[workspaceId]/page.tsx` currently placeholder UI.
 
+- `app/(standalone)/`
+	- Standalone workspace routes:
+	- `workspaces/create/page.tsx` renders authenticated workspace creation view.
+	- `workspaces/[workspaceId]/settings/page.tsx` renders authorized workspace settings/edit form.
+
 - `app/api/[...route]/route.ts`
 	- Hono app entrypoint mounted at `/api`.
 	- Routes currently include `/api/auth/*` and `/api/workspaces/*`.
@@ -131,15 +136,15 @@ This section explains the important folders as they exist now.
 	- `constant.ts`: auth cookie name.
 
 - `features/workspaces/`
-	- `server/route.ts`: create/list workspace endpoints.
+	- `server/route.ts`: create/list/update workspace endpoints.
 	- `action.ts`: server helper to get user workspaces.
 	- `api/*`: React Query hooks.
-	- `components/*`: workspace form + avatar.
+	- `components/*`: create/edit workspace forms + avatar.
 	- `hooks/use-workspace-id.ts`: route param helper.
 
-- `features/members/tpyes.ts`
+
+- `features/members/types.ts`
 	- Defines `MemberRole` enum used for workspace membership role.
-	- File name contains typo (`tpyes`).
 
 ### `lib/`
 
@@ -215,7 +220,11 @@ Implemented endpoints in `features/workspaces/server/route.ts`:
 
 Client-side:
 - `CreateWorkspaceForm` submits workspace creation.
+- `EditWorkspaceForm` submits workspace name updates.
 - `WorkspaceSwitcher` displays user workspaces and route-switches by id.
+
+Workspace settings page:
+- `app/(standalone)/workspaces/[workspaceId]/settings/page.tsx` checks auth and admin/owner access before rendering edit form.
 
 ### D) Routing behavior on home page
 
@@ -224,8 +233,8 @@ In `app/(dashboard)/page.tsx`:
 - If authenticated and has 0 workspaces -> redirect to `/workspaces/create`
 - If authenticated and has workspaces -> redirect to first workspace id
 
-Important current gap:
-- `/workspaces/create` page route is not implemented yet, even though redirect expects it.
+Current note:
+- `/workspaces/create` route exists and is used by dashboard redirect when user has no workspace.
 
 ## 6) Usage Examples (How to Run/Test Now)
 
@@ -240,7 +249,7 @@ Use these manual tests after running `npm run dev`.
 5. You should be redirected to `/`
 
 Expected result:
-- If your account has no workspace, redirect attempts to `/workspaces/create`.
+- If your account has no workspace, redirect opens `/workspaces/create` and workspace creation form is available.
 
 ### Example 2: Existing user login
 
@@ -289,11 +298,10 @@ Relationship highlights:
 
 - Passwords are currently stored and compared as plain text.
 - Auth cookie uses `secure: true` in auth routes, which can break localhost over HTTP.
-- `/workspaces/create` redirect target exists in logic but page is missing.
 - Workspace detail page is currently placeholder only.
 - Navigation active state is hardcoded (`isActive = false`).
 - Session cleanup utility exists but is not currently wired into app startup.
-- Several filenames contain typos (`tpyes`, `middelware`, `sesson`, `seperator`).
+- Several filenames still contain typos (`middelware`, `sesson`, `seperator`).
 
 ## 9) Notes For Future Updates (Easy-To-Extend Section)
 
@@ -314,8 +322,8 @@ Known side effects:
 
 - [ ] Add password hashing (bcrypt/argon2)
 - [ ] Make cookie `secure` env-aware (production only)
-- [ ] Implement `/workspaces/create` page
 - [ ] Implement workspace detail page content
+- [ ] Improve workspace settings UX (validation/error states)
 - [ ] Add project/task CRUD APIs
 - [ ] Add task UI (list/board)
 - [ ] Add invite/join workspace flow
@@ -324,6 +332,7 @@ Known side effects:
 ### Changelog Placeholder
 
 - 2026-03-27: Initial documentation draft based on full codebase read.
+- 2026-03-29: Added standalone workspace routes, workspace settings/edit flow, and refreshed known gaps.
 
 ## 10) Quick Onboarding For A New Developer
 

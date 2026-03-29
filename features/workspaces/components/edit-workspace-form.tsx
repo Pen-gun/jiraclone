@@ -2,7 +2,8 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
-import { createWorkspaceSchema } from "../schemas";
+import { updateWorkspaceSchema } from "../schemas";
+import { Workspace } from "../types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
  import {
   Field,
@@ -14,44 +15,54 @@ import { z } from "zod";
 import { DottedSeparator } from "@/components/dotted-seperator";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useCreateWorkspace } from "../api/use-create-workspace";
+import { useUpdateWorkspace } from "../api/use-update-workspace";
 import { showJsonToast } from "@/components/toaster";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { ArrowLeftIcon } from "lucide-react";
 
-interface CreateWorkspaceFormProps {
+interface EditWorkspaceFormProps {
     onCancel?: () => void;
+    initialWorkspace: Workspace;
 };
 
-export const CreateWorkspaceForm = ({ onCancel }: CreateWorkspaceFormProps) => {
+export const EditWorkspaceForm = ({ onCancel, initialWorkspace }: EditWorkspaceFormProps) => {
     const router = useRouter();
-    const { mutate, isPending} = useCreateWorkspace();
-    const form = useForm<z.infer<typeof createWorkspaceSchema>>({
-        resolver:zodResolver(createWorkspaceSchema),
+    const { mutate, isPending} = useUpdateWorkspace();
+    const form = useForm<z.infer<typeof updateWorkspaceSchema>>({
+        resolver:zodResolver(updateWorkspaceSchema),
         defaultValues: {
-            name: "",
+            ...initialWorkspace,
         }
     });
-    const onSubmit = async (values: z.infer<typeof createWorkspaceSchema>) => {
-        mutate({ json: values },{
-            onSuccess: (workspace) => {
-                showJsonToast("Workspace created successfully", { name: values.name });
+    const onSubmit = async (values: z.infer<typeof updateWorkspaceSchema>) => {
+        mutate({ 
+            form: values,
+            param: { workspaceId: initialWorkspace.id }
+
+         },{
+            onSuccess: ({data}) => {
+                showJsonToast("Workspace updated successfully", { name: values.name });
                 form.reset();
-                router.push(`/workspaces/${workspace.id}`); // Navigate to the new workspace page
+                router.push(`/workspaces/${data.id}`); // Navigate to the workspace page
 
             },
             onError: (error: any) => {
                 const message = error instanceof Error ? error.message : "An unknown error occurred";
-                alert(`Failed to create workspace: ${message}`);
+                alert(`Failed to update workspace: ${message}`);
             }
         });
 
     };  
     return(
         <Card className="w-full h-full border-none shadow-none">
-            <CardHeader className="flex p-7">
+            <CardHeader className="flex flex-row items-centergap-x-4 p-7 space-y-0">
+                <Button size='sm' variant='secondary' onClick={onCancel ? onCancel : () => router.back()} className="mr-3 cursor-pointer">
+                    <ArrowLeftIcon className="size-4 mr-2" />
+                    Back
+                </Button>
                 <CardTitle className="text-xl font-bold">
-                    Create a new workspace
+                    {initialWorkspace.name}
                 </CardTitle>
             </CardHeader>
             <div className="px-7">
@@ -94,7 +105,7 @@ export const CreateWorkspaceForm = ({ onCancel }: CreateWorkspaceFormProps) => {
                             Cancel
                         </Button>
                         <Button type="submit" className="mr-3" disabled={isPending}>
-                            {isPending ? "Creating..." : "Create Workspace"}
+                            {isPending ? "Saving..." : "Save Changes"}
                         </Button>
                     </div>
                 </form>
