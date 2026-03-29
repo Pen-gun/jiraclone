@@ -21,9 +21,6 @@ const app = new Hono()
                     workspace: true,
                 },
             });
-            if (!members) {
-                return c.json([], 200);
-            }
             const workspaces = members.map((member) => ({
                 ...member.workspace,
                 role: member.role,
@@ -32,8 +29,8 @@ const app = new Hono()
     })
     .post(
         "/",
-        zValidator("json", createWorkspaceSchema),
         sessionMiddleware,
+        zValidator("json", createWorkspaceSchema),
         async (c) => {
             const user = c.get("user");
             const { name } = c.req.valid("json");
@@ -62,13 +59,33 @@ const app = new Hono()
             const user = c.get("user");
             const { workspaceId } = c.req.param();
             const { name } = c.req.valid("form");
+
+            if (typeof name === "undefined") {
+                return c.json({ message: "Workspace name is required" }, 400);
+            }
+
             const member = await getMembers({
                 workspaceId,
                 userId: user.id,
             });
+
             if( !member || member.role !== MemberRole.ADMIN) {
                 return c.json({ message: "Unauthorized" }, 403);
             }
+
+            const existingWorkspace = await prisma.workspace.findUnique({
+                where: {
+                    id: workspaceId,
+                },
+                select: {
+                    id: true,
+                },
+            });
+
+            if (!existingWorkspace) {
+                return c.json({ message: "Workspace not found" }, 404);
+            }
+
             const workspace = await prisma.workspace.update({
                 where: {
                     id: workspaceId,
