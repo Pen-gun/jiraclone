@@ -94,7 +94,7 @@ const app = new Hono()
                     name,
                 },
             });
-            return c.json(workspace);
+            return c.json({ data: workspace }, 200);
         }
     );
 
