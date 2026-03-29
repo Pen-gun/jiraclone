@@ -19,7 +19,7 @@ export const DashboardCard = () => {
 	const router = useRouter();
 	const { data: user, isLoading, isFetching, isFetched } = useCurrent();
 	const { mutate: logout } = useLogout();
-	const shouldRedirect = !user || !user.email || user.fullName === "unknown";
+	const shouldRedirect = !user || !user.email || user.fullName === " ";
 
 	useEffect(() => {
 		if (!isLoading && !isFetching && isFetched && shouldRedirect) {
