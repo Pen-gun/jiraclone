@@ -19,7 +19,7 @@ export const DashboardCard = () => {
 	const router = useRouter();
 	const { data: user, isLoading, isFetching, isFetched } = useCurrent();
 	const { mutate: logout } = useLogout();
-	const shouldRedirect = !user || !user.email || user.fullName === "Unknown User";
+	const shouldRedirect = !user || !user.email || user.fullName === " ";
 
 	useEffect(() => {
 		if (!isLoading && !isFetching && isFetched && shouldRedirect) {
@@ -32,7 +32,7 @@ export const DashboardCard = () => {
 	}
 
 	const { fullName, email } = user || {};
-	const avatarFallback = fullName ? fullName.charAt(0).toUpperCase() : "U";
+	const avatarFallback = fullName ? fullName.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase() || <AvatarFallback />;
 	return (
 		<DropdownMenu modal={false}>
 			<DropdownMenuTrigger>
@@ -52,7 +52,7 @@ export const DashboardCard = () => {
 				</div>
 				<div className="flex flex-col items-center justify-center">
 					<p className="text-sm font-medium text-neutral-900">
-						{fullName || "Unknown User"}
+						{fullName || " "}
 					</p>
 					<p className="text-xs text-muted-foreground">
 						{email || "No email provided"}

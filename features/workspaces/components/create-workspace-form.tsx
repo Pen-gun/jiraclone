@@ -16,12 +16,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useCreateWorkspace } from "../api/use-create-workspace";
 import { showJsonToast } from "@/components/toaster";
+import { useRouter } from "next/navigation";
 
 interface CreateWorkspaceFormProps {
     onCancel?: () => void;
 };
 
 export const CreateWorkspaceForm = ({ onCancel }: CreateWorkspaceFormProps) => {
+    const router = useRouter();
     const { mutate, isPending} = useCreateWorkspace();
     const form = useForm<z.infer<typeof createWorkspaceSchema>>({
         resolver:zodResolver(createWorkspaceSchema),
@@ -31,9 +33,11 @@ export const CreateWorkspaceForm = ({ onCancel }: CreateWorkspaceFormProps) => {
     });
     const onSubmit = async (values: z.infer<typeof createWorkspaceSchema>) => {
         mutate({ json: values },{
-            onSuccess: () => {
+            onSuccess: (workspace) => {
                 showJsonToast("Workspace created successfully", { name: values.name });
                 form.reset();
+                router.push(`/workspaces/${workspace.id}`); // Navigate to the new workspace page
+
             },
             onError: (error: any) => {
                 const message = error instanceof Error ? error.message : "An unknown error occurred";
@@ -41,7 +45,7 @@ export const CreateWorkspaceForm = ({ onCancel }: CreateWorkspaceFormProps) => {
             }
         });
 
-    };
+    };  
     return(
         <Card className="w-full h-full border-none shadow-none">
             <CardHeader className="flex p-7">
@@ -80,9 +84,9 @@ export const CreateWorkspaceForm = ({ onCancel }: CreateWorkspaceFormProps) => {
                     </FieldGroup>
                     <DottedSeparator className="my-6" />
                     <div className="flex justify-between">
-                        {/* <Button type="button" variant="outline" onClick={onCancel}>
+                        <Button type="button" variant="outline" onClick={onCancel}>
                             Cancel
-                        </Button> */}
+                        </Button>
                         <Button type="submit" className="mr-3" disabled={isPending}>
                             {isPending ? "Creating..." : "Create Workspace"}
                         </Button>
