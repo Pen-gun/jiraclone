@@ -19,6 +19,7 @@ import { useUpdateWorkspace } from "../api/use-update-workspace";
 import { showJsonToast } from "@/components/toaster";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { ArrowLeftIcon } from "lucide-react";
 
 interface EditWorkspaceFormProps {
     onCancel?: () => void;
@@ -55,7 +56,11 @@ export const EditWorkspaceForm = ({ onCancel, initialWorkspace }: EditWorkspaceF
     };  
     return(
         <Card className="w-full h-full border-none shadow-none">
-            <CardHeader className="flex p-7">
+            <CardHeader className="flex flex-row items-centergap-x-4 p-7 space-y-0">
+                <Button size='sm' variant='secondary' onClick={onCancel ? onCancel : () => router.back()} className="mr-3 cursor-pointer">
+                    <ArrowLeftIcon className="size-4 mr-2" />
+                    Back
+                </Button>
                 <CardTitle className="text-xl font-bold">
                     {initialWorkspace.name}
                 </CardTitle>
@@ -100,7 +105,7 @@ export const EditWorkspaceForm = ({ onCancel, initialWorkspace }: EditWorkspaceF
                             Cancel
                         </Button>
                         <Button type="submit" className="mr-3" disabled={isPending}>
-                            {isPending ? "Updating..." : "Update Workspace"}
+                            {isPending ? "Saving..." : "Save Changes"}
                         </Button>
                     </div>
                 </form>
