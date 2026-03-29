@@ -1,3 +1,4 @@
+
 import { useQueryState, parseAsBoolean } from "nuqs";
 
 export const useCreateWorkspaceModal = () => {
@@ -5,6 +6,13 @@ export const useCreateWorkspaceModal = () => {
         "create-workspace",
         parseAsBoolean.withDefault(false).withOptions({ clearOnDefault: true })
     )
-    //localhost:3000/dashboard?create-workspace=true
-    
+    const openModal = () => setIsOpen(true);
+    const closeModal = () => setIsOpen(false);
+
+    return {
+        isOpen,
+        openModal,
+        closeModal,
+        setIsOpen
+    }
 }

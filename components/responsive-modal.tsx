@@ -1,11 +1,12 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { useMedia } from "react-use";
 
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
-    DialogTitle,
-    DialogTrigger
+    DialogTitle
 } from "@/components/ui/dialog";
 
 import {
@@ -25,12 +26,20 @@ export const ResponsiveModal = ({
     open,
     onOpenChange
 }: ResponsiveModalProps) => {
-    const Desktop = useMedia("(min-width: 1024px)");
-    if (Desktop) {
+    const [isMounted, setIsMounted] = useState(false);
+    const isDesktop = useMedia("(min-width: 1024px)", true);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    const showDesktopModal = isMounted ? isDesktop : true;
+
+    if (showDesktopModal) {
         return (
             <Dialog open={open} onOpenChange={onOpenChange}>
                 <DialogTitle className="text-lg font-bold">
-                    Create a new workspace
+                    
                 </DialogTitle>
                 <DialogContent className="sm:max-w-lg p-0 border-none overflow-y-auto hide-scrollbar max-h-[85vh]">
                     {children}
@@ -41,7 +50,7 @@ export const ResponsiveModal = ({
     return (
         <Drawer open={open} onOpenChange={onOpenChange}>
             <DrawerTitle className="text-lg font-bold">
-                Create a new workspace
+                
             </DrawerTitle>
             <DrawerContent>
                 <div className="overflow-y-auto hide-scrollbar max-h-[85vh]">
