@@ -70,3 +70,42 @@ export const getWorkspaces = async () => {
         return { workspaces: [] };
     }
 };
+
+interface GetWorkspaceProps {
+    workspaceId: string;
+};
+
+export const getWorkspace = async ({ workspaceId }: GetWorkspaceProps) => {
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get(AUTH_COOKIE_NAME);
+    // No session cookie → return empty result
+    if (!sessionCookie) {
+        return null;
+    }
+    try {
+        const workspace = await prisma.workspace.findUnique({
+            where: { id: workspaceId },
+            include: {
+                owner: {
+                    select: {
+                        id: true,
+                        fullName: true,
+                        email: true,
+                    },
+                },
+                members: {
+                    select: {
+                        id: true,
+                        userId: true,
+                        role: true,
+                    },
+                },
+            },
+        });
+
+        return workspace;
+    } catch (error) {
+        console.error("[GET_WORKSPACE_ERROR]", error);
+        return null;
+    }
+};
