@@ -3,6 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import { DashboardCard } from "@/features/auth/components/dash-board-card";
 interface AuthLayoutProps {
     children: React.ReactNode;
 }
@@ -14,11 +15,15 @@ const AuthLayout = ({ children }: AuthLayoutProps) => {
             <div className="mx-auto max-w-screen-2xl p-4">
                 <nav className="flex justify-between items-center">
                     <Image src='/logo.svg' alt='logo' width={100} height={50} style={{ height: "auto" }} />
-                    <Link href={pathname === '/sign-in' ? "/sign-up" : "/sign-in"}>
-                        <Button variant="secondary" className="hover:cursor-pointer">
-                            {pathname === '/sign-in' ? "Sign Up" : "Sign In"}
-                        </Button>
-                    </Link>
+                    {pathname === '/onboarding' ? (
+                        <DashboardCard />
+                    ) : (
+                        <Link href={pathname === '/sign-in' ? "/sign-up" : "/sign-in"}>
+                            <Button variant="secondary" className="hover:cursor-pointer">
+                                {pathname === '/sign-in' ? "Sign Up" : "Sign In"}
+                            </Button>
+                        </Link>
+                    )}
                 </nav>
                 <div className="flex items-center justify-center max-w-250 mx-auto mt-10">
                     {children}

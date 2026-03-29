@@ -10,7 +10,8 @@ import {
 
 import {
     Drawer,
-    DrawerContent
+    DrawerContent,
+    DrawerTitle
 } from "@/components/ui/drawer";
 
 interface ResponsiveModalProps {
@@ -28,6 +29,9 @@ export const ResponsiveModal = ({
     if (Desktop) {
         return (
             <Dialog open={open} onOpenChange={onOpenChange}>
+                <DialogTitle className="text-lg font-bold">
+                    Create a new workspace
+                </DialogTitle>
                 <DialogContent className="sm:max-w-lg p-0 border-none overflow-y-auto hide-scrollbar max-h-[85vh]">
                     {children}
                 </DialogContent>
@@ -36,6 +40,9 @@ export const ResponsiveModal = ({
     }
     return (
         <Drawer open={open} onOpenChange={onOpenChange}>
+            <DrawerTitle className="text-lg font-bold">
+                Create a new workspace
+            </DrawerTitle>
             <DrawerContent>
                 <div className="overflow-y-auto hide-scrollbar max-h-[85vh]">
                     {children}
