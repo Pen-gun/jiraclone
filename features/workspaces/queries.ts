@@ -87,4 +87,29 @@ export const getWorkspace = async ({ workspaceId }: GetWorkspaceProps) => {
         console.error("[GET_WORKSPACE_ERROR]", error);
         return null;
     }
+}
+
+interface GetWorkspaceInfoProps {
+    workspaceId: string;
+};
+
+export const getWorkspaceInfo = async ({ workspaceId }: GetWorkspaceInfoProps) => {
+    const session = await getSession();
+
+    if (!session) {
+        return null;
+    }
+
+    try {
+        const workspace = await prisma.workspace.findFirst({
+            where: {
+                id: workspaceId,
+            },
+        });
+
+        return { name: workspace?.name };
+    } catch (error) {
+        console.error("[GET_WORKSPACE_INFO_ERROR]", error);
+        return null;
+    }
 };
