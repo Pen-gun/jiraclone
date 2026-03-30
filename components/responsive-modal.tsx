@@ -6,6 +6,7 @@ import { useMedia } from "react-use";
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogTitle
 } from "@/components/ui/dialog";
 
@@ -38,10 +39,9 @@ export const ResponsiveModal = ({
     if (showDesktopModal) {
         return (
             <Dialog open={open} onOpenChange={onOpenChange}>
-                <DialogTitle className="text-lg font-bold">
-                    
-                </DialogTitle>
                 <DialogContent className="sm:max-w-lg p-0 border-none overflow-y-auto hide-scrollbar max-h-[85vh]">
+                    <DialogTitle className="sr-only">Dialog</DialogTitle>
+                    <DialogDescription className="sr-only">Modal content</DialogDescription>
                     {children}
                 </DialogContent>
             </Dialog>

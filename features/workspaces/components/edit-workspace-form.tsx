@@ -5,21 +5,25 @@ import { Controller, useForm } from "react-hook-form";
 import { updateWorkspaceSchema } from "../schemas";
 import { Workspace } from "../types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
- import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
+import {
+    Field,
+    FieldError,
+    FieldGroup,
+    FieldLabel,
 } from "@/components/ui/field"
 import { z } from "zod";
 import { DottedSeparator } from "@/components/dotted-seperator";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useUpdateWorkspace } from "../api/use-update-workspace";
+import { useDeleteWorkspace } from "../api/use-delete-workspace";
 import { showJsonToast } from "@/components/toaster";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { ArrowLeftIcon } from "lucide-react";
+import { ArrowLeftIcon, CopyIcon } from "lucide-react";
+import { useConfirm } from "@/hooks/use-confirm";
+import { useResetInviteCode } from "../api/use-reset-invite-code";
+import { useEffect, useState } from "react";
 
 interface EditWorkspaceFormProps {
     onCancel?: () => void;
@@ -28,24 +32,56 @@ interface EditWorkspaceFormProps {
 
 export const EditWorkspaceForm = ({ onCancel, initialWorkspace }: EditWorkspaceFormProps) => {
     const router = useRouter();
-    const { mutate, isPending} = useUpdateWorkspace();
+    const { mutate, isPending } = useUpdateWorkspace();
+    const {
+        mutate: deleteWorkspace,
+        isPending: isDeleting
+    } = useDeleteWorkspace();
+
+    const [DeleteConfirmationDialog, confirmDelete] = useConfirm(
+        "Confirm Deletion",
+        "Are you sure you want to delete this workspace? This action cannot be undone.",
+        "destructive"
+    );
+
+    const [ResetConfirmationDialogue, confirmReset] = useConfirm(
+        "Confirm Reset",
+        "Are you sure you want to reset the invite code? This will invalidate the current code.",
+        "destructive"
+    );
+
+    const {
+        mutate: resetInviteCode,
+        isPending: isResettingInviteCode
+    } = useResetInviteCode();
+
+    const [inviteCode, setInviteCode] = useState(initialWorkspace.inviteCode);
+    const [origin, setOrigin] = useState("");
+
+    useEffect(() => {
+        setOrigin(window.location.origin);
+    }, []);
+
+    const fullInviteLink = origin
+        ? `${origin}/workspaces/${initialWorkspace.id}/join/${inviteCode}`
+        : "";
+
     const form = useForm<z.infer<typeof updateWorkspaceSchema>>({
-        resolver:zodResolver(updateWorkspaceSchema),
+        resolver: zodResolver(updateWorkspaceSchema),
         defaultValues: {
             ...initialWorkspace,
         }
     });
     const onSubmit = async (values: z.infer<typeof updateWorkspaceSchema>) => {
-        mutate({ 
+        mutate({
             form: values,
             param: { workspaceId: initialWorkspace.id }
 
-         },{
-            onSuccess: ({data}) => {
+        }, {
+            onSuccess: ({ data }) => {
                 showJsonToast("Workspace updated successfully", { name: values.name });
                 form.reset();
                 router.push(`/workspaces/${data.id}`); // Navigate to the workspace page
-
             },
             onError: (error: any) => {
                 const message = error instanceof Error ? error.message : "An unknown error occurred";
@@ -53,65 +89,175 @@ export const EditWorkspaceForm = ({ onCancel, initialWorkspace }: EditWorkspaceF
             }
         });
 
-    };  
-    return(
-        <Card className="w-full h-full border-none shadow-none">
-            <CardHeader className="flex flex-row items-centergap-x-4 p-7 space-y-0">
-                <Button size='sm' variant='secondary' onClick={onCancel ? onCancel : () => router.back()} className="mr-3 cursor-pointer">
-                    <ArrowLeftIcon className="size-4 mr-2" />
-                    Back
-                </Button>
-                <CardTitle className="text-xl font-bold">
-                    {initialWorkspace.name}
-                </CardTitle>
-            </CardHeader>
-            <div className="px-7">
-                <DottedSeparator />
-            </div>
-            <CardContent className="p-7">
-                <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
-                    <FieldGroup>
-                        <Controller
-                            name="name"
-                            control={form.control}
-                            render={({ field, fieldState }) => (
-                                <Field data-invalid = {fieldState.invalid}>
-                                    <FieldLabel>
-                                        Workspace Name
-                                    </FieldLabel>
-                                    <Input
-                                    {...field}
-                                    aria-invalid={fieldState.invalid}
-                                    placeholder="Enter workspace name"
-                                    autoComplete="off"
-                                    />
-                                    {fieldState.error && (
-                                        <FieldError>
-                                            {fieldState.error.message}
-                                        </FieldError>
-                                    )}
-                                </Field>
-                            )}
-                        />
-                    </FieldGroup>
-                    <DottedSeparator className="my-6" />
-                    <div className="flex justify-between">
-                        <Button 
-                        type="button" 
-                        variant="outline" 
-                        onClick={onCancel} 
-                        disabled = {isPending}
-                        className={cn(!onCancel && "invisible")}>
-                            Cancel
-                        </Button>
-                        <Button type="submit" className="mr-3" disabled={isPending}>
-                            {isPending ? "Saving..." : "Save Changes"}
+    };
+    const handleDelete = async () => {
+        const ok = await confirmDelete();
+        if (!ok) return;
+
+        deleteWorkspace(
+            { param: { workspaceId: initialWorkspace.id } },
+            {
+                onSuccess: () => {
+                    showJsonToast("Workspace deleted successfully", {
+                        name: initialWorkspace.name,
+                    });
+                    router.push("/");
+                },
+                onError: (error) => {
+                    showJsonToast("Failed to delete workspace", {
+                        error: error.message,
+                    });
+                },
+            }
+        );
+    };
+
+    const handleCopyInviteLink = async () => {
+        try {
+            navigator.clipboard.writeText(fullInviteLink)
+                .then(() => showJsonToast("Invite link copied to clipboard", { data: "InviteLink" }));
+        } catch (error) {
+            showJsonToast("Failed to copy invite link", {
+                error: error instanceof Error ? error.message : "Unknown error",
+            });
+        }
+    };
+
+    const handleResetInviteCode = async () => {
+        const ok = await confirmReset();
+        if (!ok) return;
+
+        resetInviteCode(
+            { param: { workspaceId: initialWorkspace.id } },
+            {
+                onSuccess: ({ data }) => {
+                    setInviteCode(data.inviteCode);
+                    showJsonToast("Invite code reset successfully", {
+                        data: data.inviteCode,
+                    });
+                }
+            }
+        )
+    };
+    return (
+        <div className="flex flex-col gap-y-4">
+            <DeleteConfirmationDialog />
+            <ResetConfirmationDialogue />
+            <Card className="w-full h-full border-none shadow-none">
+                <CardHeader className="flex flex-row items-centergap-x-4 p-7 space-y-0">
+                    <Button size='sm' variant='secondary' onClick={onCancel ? onCancel : () => router.back()} className="mr-3 cursor-pointer">
+                        <ArrowLeftIcon className="size-4 mr-2" />
+                        Back
+                    </Button>
+                    <CardTitle className="text-xl font-bold">
+                        {initialWorkspace.name}
+                    </CardTitle>
+                </CardHeader>
+                <div className="px-7">
+                    <DottedSeparator />
+                </div>
+                <CardContent className="p-7">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
+                        <FieldGroup>
+                            <Controller
+                                name="name"
+                                control={form.control}
+                                render={({ field, fieldState }) => (
+                                    <Field data-invalid={fieldState.invalid}>
+                                        <FieldLabel>
+                                            Workspace Name
+                                        </FieldLabel>
+                                        <Input
+                                            {...field}
+                                            aria-invalid={fieldState.invalid}
+                                            placeholder="Enter workspace name"
+                                            autoComplete="off"
+                                        />
+                                        {fieldState.error && (
+                                            <FieldError>
+                                                {fieldState.error.message}
+                                            </FieldError>
+                                        )}
+                                    </Field>
+                                )}
+                            />
+                        </FieldGroup>
+                        <DottedSeparator className="my-6" />
+                        <div className="flex justify-between">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={onCancel}
+                                disabled={isPending || isDeleting}
+                                className={cn(!onCancel && "invisible")}>
+                                Cancel
+                            </Button>
+                            <Button type="submit" className="mr-3 cursor-pointer" disabled={isPending || isDeleting}>
+                                {isPending ? "Saving..." : "Save Changes"}
+                            </Button>
+                        </div>
+                    </form>
+                </CardContent>
+            </Card>
+            {/* reset invite code section */}
+            <Card className="w-full h-full border-none shadow-none">
+                <CardContent className="p-7">
+                    <div className="flex flex-col">
+                        <h3 className="font-bold">Reset members</h3>
+                        <p className="text-sm text-muted-foreground">
+                            use the invite link below to invite new members to your workspace. Resetting the invite code will invalidate the current invite link and generate a new one.
+                        </p>
+                        <div className="mt-4">
+                            <div className="flex items-center gap-x-2">
+                                <Input disabled value={fullInviteLink} />
+                                <Button
+                                    onClick={handleCopyInviteLink}
+                                    variant="secondary"
+                                    className="size-12"
+                                    disabled={!fullInviteLink}
+                                >
+                                    <CopyIcon className="size-5" />
+                                </Button>
+                            </div>
+                        </div>
+                        <DottedSeparator className="my-6" />
+                        <Button
+                            type="button"
+                            size='sm'
+                            className="mt-6 w-fit ml-auto cursor-pointer"
+                            variant="destructive"
+                            disabled={isPending || isResettingInviteCode}
+                            onClick={handleResetInviteCode}
+                        >
+                            {isResettingInviteCode ? "Resetting..." : "Reset Invite Code"}
                         </Button>
                     </div>
-                </form>
-            </CardContent>
-            
-        </Card>
+                </CardContent>
+            </Card>
+            {/* delete workspace */}
+            <Card className="w-full h-full border-none shadow-none">
+                <CardContent className="p-7">
+                    <div className="flex flex-col">
+                        <h3 className="font-bold">Danger Zone</h3>
+                        <p className="text-sm text-muted-foreground">
+                            Deleting a workspace is a permanent action and cannot be undone.
+                        </p>
+                        <DottedSeparator className="my-6" />
+                        <Button
+                            type="button"
+                            size='sm'
+                            className="mt-6 w-fit ml-auto cursor-pointer"
+                            variant="destructive"
+                            disabled={isPending || isDeleting}
+                            onClick={handleDelete}
+                        >
+                            {isDeleting ? "Deleting..." : "Delete Workspace"}
+                        </Button>
+                    </div>
+                </CardContent>
+
+            </Card>
+        </div>
 
     )
 }

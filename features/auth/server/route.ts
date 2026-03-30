@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
-import { signInFormSchema, signUpFormSchema, onBoardingFormSchema } from '@/features/schemas'
+import { signInFormSchema, signUpFormSchema, onBoardingFormSchema } from '@/features/auth/schemas'
 import { prisma } from '@/lib/prismaHelper'
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
 import { AUTH_COOKIE_NAME } from '../constant'

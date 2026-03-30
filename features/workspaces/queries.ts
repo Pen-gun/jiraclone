@@ -1,48 +1,21 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { prisma } from "@/lib/prismaHelper";
-import { AUTH_COOKIE_NAME } from "@/features/auth/constant";
+import { getSession } from "@/lib/getSessionClient";
 
 
 export const getWorkspaces = async () => {
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get(AUTH_COOKIE_NAME);
+    const session = await getSession();
 
-    // No session cookie → return empty result
-    if (!sessionCookie) {
+    if (!session) {
         return { workspaces: []};
     }
 
     try {
-        // Fetch session
-        const dbSession = await prisma.session.findUnique({
-            where: { id: sessionCookie.value },
-            select: {
-                id: true,
-                userId: true,
-                expiresAt: true,
-            },
-        });
-
-        // Invalid or expired session
-        if (!dbSession || dbSession.expiresAt < new Date()) {
-            if (dbSession) {
-                await prisma.session.delete({
-                    where: { id: dbSession.id },
-                });
-            }
-
-            // Remove invalid cookie
-            cookieStore.delete(AUTH_COOKIE_NAME);
-
-            return { workspaces: [] };
-        }
-
         // Fetch workspaces via membership
         const members = await prisma.workspaceMember.findMany({
             where: {
-                userId: dbSession.userId,
+                userId: session.userId,
             },
             select: {
                 workspace: {
@@ -76,15 +49,21 @@ interface GetWorkspaceProps {
 };
 
 export const getWorkspace = async ({ workspaceId }: GetWorkspaceProps) => {
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get(AUTH_COOKIE_NAME);
-    // No session cookie → return empty result
-    if (!sessionCookie) {
+    const session = await getSession();
+
+    if (!session) {
         return null;
     }
+
     try {
-        const workspace = await prisma.workspace.findUnique({
-            where: { id: workspaceId },
+        const workspace = await prisma.workspace.findFirst({
+            where: {
+                id: workspaceId,
+                OR: [
+                    { ownerId: session.userId },
+                    { members: { some: { userId: session.userId } } },
+                ],
+            },
             include: {
                 owner: {
                     select: {
@@ -106,6 +85,31 @@ export const getWorkspace = async ({ workspaceId }: GetWorkspaceProps) => {
         return workspace;
     } catch (error) {
         console.error("[GET_WORKSPACE_ERROR]", error);
+        return null;
+    }
+}
+
+interface GetWorkspaceInfoProps {
+    workspaceId: string;
+};
+
+export const getWorkspaceInfo = async ({ workspaceId }: GetWorkspaceInfoProps) => {
+    const session = await getSession();
+
+    if (!session) {
+        return null;
+    }
+
+    try {
+        const workspace = await prisma.workspace.findFirst({
+            where: {
+                id: workspaceId,
+            },
+        });
+
+        return { name: workspace?.name };
+    } catch (error) {
+        console.error("[GET_WORKSPACE_INFO_ERROR]", error);
         return null;
     }
 };

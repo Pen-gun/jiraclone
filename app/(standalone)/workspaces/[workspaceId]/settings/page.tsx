@@ -1,5 +1,5 @@
-import { getCurrentUser } from "@/features/action";
-import { getWorkspace } from "@/features/workspaces/action";
+import { getCurrentUser } from "@/features/auth/queries";
+import { getWorkspace } from "@/features/workspaces/queries";
 import { EditWorkspaceForm } from "@/features/workspaces/components/edit-workspace-form";
 import { redirect } from "next/navigation";
 
@@ -14,16 +14,13 @@ const WorkspaceIdSettingsPage = async ({
 }: WorkspaceIdSettingsPageProps) => {
   const { workspaceId } = await params;
 
-  // Parallel fetching for better performance
   const [user, workspace] = await Promise.all([
     getCurrentUser(),
     getWorkspace({ workspaceId }),
   ]);
 
-  // Check authentication
   if (!user) redirect("/sign-in");
 
-  // Check if workspace exists
   if (!workspace) redirect("/");
 
   // Authorization: only owner or admin can edit
@@ -37,7 +34,7 @@ const WorkspaceIdSettingsPage = async ({
   }
 
   return (
-    <div>
+    <div className="w-full lg:max-w-4xl xl:max-w-5xl">
       <EditWorkspaceForm initialWorkspace={workspace} />
     </div>
   );
