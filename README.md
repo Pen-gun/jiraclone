@@ -21,10 +21,12 @@ Current milestone: authentication, onboarding, and first workspace creation flow
 - Sign in, sign up, onboarding, and root dashboard experience
 - Auth API endpoints under `/api/auth`
 - Workspace create/list endpoints under `/api/workspaces` (stored in `Workspace` + `WorkspaceMember` models)
+- Workspace invite flow (`join` + `reset-invite-code`) under `/api/workspaces`
 - Session table with cookie-based auth token (`auth_token`)
 - Server-side auth gate on the home page
 - Client-side current-user fetch via React Query
 - Logout endpoint that clears session record and cookie
+- OpenAPI spec and Swagger UI available at `/api/openapi.json` and `/api/docs`
 - Prisma domain models for `Workspace`, `Project`, `Task`, and `Comment`
 
 ## Repository Layout
@@ -117,6 +119,11 @@ npm run start
 npm run lint
 ```
 
+## API Documentation
+
+- OpenAPI JSON: `/api/openapi.json`
+- Swagger UI: `/api/docs`
+
 ## Auth Architecture
 
 1. Login and register create a `Session` row and set `auth_token` cookie.
@@ -132,6 +139,13 @@ npm run lint
 3. Hono route validates payload and requires `sessionMiddleware`.
 4. Route creates a `Workspace` row and a `WorkspaceMember` row with `ADMIN` role for the creator.
 5. On success, form resets and `workspaces` query key is invalidated.
+
+## Workspace Invite Flow (Current)
+
+1. Workspace admin can reset invite code via `POST /api/workspaces/:workspaceId/reset-invite-code`.
+2. Invite links use `/workspaces/:workspaceId/join/:invitecode`.
+3. Join flow posts `inviteCode` to `POST /api/workspaces/:workspaceId/join`.
+4. Route validates code, prevents duplicate membership, then creates a `WorkspaceMember` row with `MEMBER` role.
 
 ## Known Gaps
 

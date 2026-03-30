@@ -247,6 +247,41 @@ export const openApiDocument = {
                 },
             },
         },
+        '/workspaces/{workspaceId}/join': {
+            post: {
+                tags: ['Workspace Management'],
+                summary: 'Join workspace by invite code',
+                security: [{ cookieAuth: [] }],
+                parameters: [
+                    {
+                        name: 'workspaceId',
+                        in: 'path',
+                        required: true,
+                        schema: { type: 'string' },
+                    },
+                ],
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                required: ['inviteCode'],
+                                properties: {
+                                    inviteCode: { type: 'string' },
+                                },
+                            },
+                        },
+                    },
+                },
+                responses: {
+                    '200': { description: 'Joined workspace' },
+                    '400': { description: 'Already a member' },
+                    '404': { description: 'Invalid invite code' },
+                    '500': { description: 'Failed to join workspace' },
+                },
+            },
+        },
     },
 } as const
 

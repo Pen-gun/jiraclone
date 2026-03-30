@@ -14,6 +14,7 @@ import { useInviteCode } from "../hooks/use-invite-code";
 import { useJoinWorkspace } from "../api/use-join-workspace";
 import { useWorkspaceId } from "../hooks/use-workspace-id";
 import { useRouter } from "next/navigation";
+import { showJsonToast } from "@/components/toaster";
 
 interface JoinWorkspaceFormProps {
     initialValues: {
@@ -40,6 +41,7 @@ export const JoinWorkspaceForm = ({
         }, {
             onSuccess: ({ data }) => {
                 router.push(`/workspaces/${data.id}`);
+                showJsonToast("Successfully joined workspace", data.name);
             },
         });
     };
