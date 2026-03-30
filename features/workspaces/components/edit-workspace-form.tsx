@@ -20,7 +20,7 @@ import { useDeleteWorkspace } from "../api/use-delete-workspace";
 import { showJsonToast } from "@/components/toaster";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { ArrowLeftIcon, CopyIcon } from "lucide-react";
+import { ArrowLeftIcon, CopyIcon, Dot } from "lucide-react";
 import { useConfirm } from "@/hooks/use-confirm";
 import { useResetInviteCode } from "../api/use-reset-invite-code";
 
@@ -32,13 +32,27 @@ interface EditWorkspaceFormProps {
 export const EditWorkspaceForm = ({ onCancel, initialWorkspace }: EditWorkspaceFormProps) => {
     const router = useRouter();
     const { mutate, isPending } = useUpdateWorkspace();
-    const { mutate: deleteWorkspace, isPending: isDeleting } = useDeleteWorkspace();
+    const {
+        mutate: deleteWorkspace,
+        isPending: isDeleting
+    } = useDeleteWorkspace();
+
     const [DeleteConfirmationDialog, confirmDelete] = useConfirm(
         "Confirm Deletion",
         "Are you sure you want to delete this workspace? This action cannot be undone.",
         "destructive"
     );
-    const { mutate: resetInviteCode, isPending: isResettingInviteCode } = useResetInviteCode();
+
+    const [ResetConfirmationDialogue, confirmReset] = useConfirm(
+        "Confirm Reset",
+        "Are you sure you want to reset the invite code? This will invalidate the current code.",
+        "destructive"
+    );
+
+    const {
+        mutate: resetInviteCode,
+        isPending: isResettingInviteCode
+    } = useResetInviteCode();
 
     const form = useForm<z.infer<typeof updateWorkspaceSchema>>({
         resolver: zodResolver(updateWorkspaceSchema),
@@ -89,8 +103,8 @@ export const EditWorkspaceForm = ({ onCancel, initialWorkspace }: EditWorkspaceF
 
     const handleCopyInviteLink = async () => {
         try {
-            await navigator.clipboard.writeText(fullInviteLink);
-            showJsonToast("Invite link copied to clipboard", {});
+            navigator.clipboard.writeText(fullInviteLink)
+                .then(() => showJsonToast("Invite link copied to clipboard", { data: "InviteLink" }));
         } catch (error) {
             showJsonToast("Failed to copy invite link", {
                 error: error instanceof Error ? error.message : "Unknown error",
@@ -99,10 +113,14 @@ export const EditWorkspaceForm = ({ onCancel, initialWorkspace }: EditWorkspaceF
     };
 
     const handleResetInviteCode = async () => {
+        const ok = await confirmReset();
+        if (!ok) return;
+
         resetInviteCode(
             { param: { workspaceId: initialWorkspace.id } },
             {
                 onSuccess: ({ data }) => {
+                    router.refresh();
                     showJsonToast("Invite code reset successfully", {
                         data: data.inviteCode,
                     });
@@ -113,6 +131,7 @@ export const EditWorkspaceForm = ({ onCancel, initialWorkspace }: EditWorkspaceF
     return (
         <div className="flex flex-col gap-y-4">
             <DeleteConfirmationDialog />
+            <ResetConfirmationDialogue />
             <Card className="w-full h-full border-none shadow-none">
                 <CardHeader className="flex flex-row items-centergap-x-4 p-7 space-y-0">
                     <Button size='sm' variant='secondary' onClick={onCancel ? onCancel : () => router.back()} className="mr-3 cursor-pointer">
@@ -189,6 +208,7 @@ export const EditWorkspaceForm = ({ onCancel, initialWorkspace }: EditWorkspaceF
                                 </Button>
                             </div>
                         </div>
+                        <DottedSeparator className="my-6" />
                         <Button
                             type="button"
                             size='sm'
@@ -210,6 +230,7 @@ export const EditWorkspaceForm = ({ onCancel, initialWorkspace }: EditWorkspaceF
                         <p className="text-sm text-muted-foreground">
                             Deleting a workspace is a permanent action and cannot be undone.
                         </p>
+                        <DottedSeparator className="my-6" />
                         <Button
                             type="button"
                             size='sm'

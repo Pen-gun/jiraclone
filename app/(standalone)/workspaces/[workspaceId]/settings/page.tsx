@@ -34,7 +34,7 @@ const WorkspaceIdSettingsPage = async ({
   }
 
   return (
-    <div className="w-full lg:max-w-2xl">
+    <div className="w-full lg:max-w-4xl xl:max-w-5xl">
       <EditWorkspaceForm initialWorkspace={workspace} />
     </div>
   );
