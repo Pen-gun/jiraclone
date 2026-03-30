@@ -3,8 +3,10 @@ import { Hono } from 'hono'
 
 import auth from '@/features/auth/server/route'
 import workspace from '@/features/workspaces/server/route'
+import { registerOpenApiDocs } from '../openapi'
 
 const app = new Hono().basePath('/api')
+registerOpenApiDocs(app)
 
 const routes = app
     .route('/auth', auth)
