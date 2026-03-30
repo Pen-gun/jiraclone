@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prismaHelper";
 import { generateInviteCode } from "@/lib/utils";
 import { validateWorkspaceAccess } from "@/features/members/utils";
 import { MemberRole } from "@/features/members/types";
+import { z } from "zod";
 
 const app = new Hono()
     .get(
@@ -127,6 +128,52 @@ const app = new Hono()
                 const message = error instanceof Error ? error.message : "Internal server error";
                 const statusCode = message === "Unauthorized" ? 403 : message === "Workspace not found" ? 404 : 500;
                 return c.json({ message }, statusCode);
+            }
+        }
+    )
+    .post(
+        "/:workspaceId/join",
+        sessionMiddleware,
+        zValidator("json", z.object({ inviteCode: z.string() })),
+        async (c) => {
+            try {
+                const { workspaceId } = c.req.param();
+                const { inviteCode } = c.req.valid("json");
+                const user = c.get("user");
+
+                const member = await prisma.workspaceMember.findFirst({
+                    where: {
+                        workspaceId,
+                        userId: user.id,
+                    },
+                });
+
+                if (member) {
+                    return c.json({ message: "Already a member of the workspace" }, 400);
+                }
+
+                const workspace = await prisma.workspace.findFirst({
+                    where: {
+                        id: workspaceId,
+                        inviteCode,
+                    },
+                });
+
+                if (!workspace) {
+                    return c.json({ message: "Invalid invite code" }, 404);
+                }
+
+                await prisma.workspaceMember.create({
+                    data: {
+                        userId: user.id,
+                        workspaceId,
+                        role: MemberRole.MEMBER,
+                    },
+                });
+
+                return c.json({ data: workspace }, 200);
+            } catch (error) {
+                return c.json({ message: "Failed to join workspace" }, 500);
             }
         }
     )
