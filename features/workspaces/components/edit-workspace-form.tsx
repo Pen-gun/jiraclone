@@ -20,9 +20,10 @@ import { useDeleteWorkspace } from "../api/use-delete-workspace";
 import { showJsonToast } from "@/components/toaster";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { ArrowLeftIcon, CopyIcon, Dot } from "lucide-react";
+import { ArrowLeftIcon, CopyIcon } from "lucide-react";
 import { useConfirm } from "@/hooks/use-confirm";
 import { useResetInviteCode } from "../api/use-reset-invite-code";
+import { useEffect, useState } from "react";
 
 interface EditWorkspaceFormProps {
     onCancel?: () => void;
@@ -53,6 +54,17 @@ export const EditWorkspaceForm = ({ onCancel, initialWorkspace }: EditWorkspaceF
         mutate: resetInviteCode,
         isPending: isResettingInviteCode
     } = useResetInviteCode();
+
+    const [inviteCode, setInviteCode] = useState(initialWorkspace.inviteCode);
+    const [origin, setOrigin] = useState("");
+
+    useEffect(() => {
+        setOrigin(window.location.origin);
+    }, []);
+
+    const fullInviteLink = origin
+        ? `${origin}/workspaces/${initialWorkspace.id}/join/${inviteCode}`
+        : "";
 
     const form = useForm<z.infer<typeof updateWorkspaceSchema>>({
         resolver: zodResolver(updateWorkspaceSchema),
@@ -99,7 +111,6 @@ export const EditWorkspaceForm = ({ onCancel, initialWorkspace }: EditWorkspaceF
             }
         );
     };
-    const fullInviteLink = `${window.location.origin}/workspaces/${initialWorkspace.id}/join/${initialWorkspace.inviteCode}`;
 
     const handleCopyInviteLink = async () => {
         try {
@@ -120,7 +131,7 @@ export const EditWorkspaceForm = ({ onCancel, initialWorkspace }: EditWorkspaceF
             { param: { workspaceId: initialWorkspace.id } },
             {
                 onSuccess: ({ data }) => {
-                    router.refresh();
+                    setInviteCode(data.inviteCode);
                     showJsonToast("Invite code reset successfully", {
                         data: data.inviteCode,
                     });
@@ -203,6 +214,7 @@ export const EditWorkspaceForm = ({ onCancel, initialWorkspace }: EditWorkspaceF
                                     onClick={handleCopyInviteLink}
                                     variant="secondary"
                                     className="size-12"
+                                    disabled={!fullInviteLink}
                                 >
                                     <CopyIcon className="size-5" />
                                 </Button>

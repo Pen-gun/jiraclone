@@ -200,8 +200,10 @@ export const openApiDocument = {
                 },
                 responses: {
                     '200': { description: 'Workspace updated' },
+                    '400': { description: 'Invalid payload' },
                     '403': { description: 'Forbidden' },
                     '404': { description: 'Not found' },
+                    '500': { description: 'Internal server error' },
                 },
             },
             delete: {
@@ -220,6 +222,28 @@ export const openApiDocument = {
                     '200': { description: 'Workspace deleted' },
                     '403': { description: 'Forbidden' },
                     '404': { description: 'Not found' },
+                    '500': { description: 'Internal server error' },
+                },
+            },
+        },
+        '/workspaces/{workspaceId}/reset-invite-code': {
+            post: {
+                tags: ['Workspace Management'],
+                summary: 'Reset workspace invite code',
+                security: [{ cookieAuth: [] }],
+                parameters: [
+                    {
+                        name: 'workspaceId',
+                        in: 'path',
+                        required: true,
+                        schema: { type: 'string' },
+                    },
+                ],
+                responses: {
+                    '200': { description: 'Invite code reset' },
+                    '403': { description: 'Forbidden' },
+                    '404': { description: 'Not found' },
+                    '500': { description: 'Internal server error' },
                 },
             },
         },
