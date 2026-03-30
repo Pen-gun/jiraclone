@@ -96,6 +96,37 @@ const app = new Hono()
             });
             return c.json({ data: workspace }, 200);
         }
+    )
+    .delete(
+        "/:workspaceId",
+        sessionMiddleware,
+        async (c) => {
+            const user = c.get("user");
+            const { workspaceId } = c.req.param();
+            const member = await getMembers({
+                workspaceId,
+                userId: user.id,
+            });
+            if( !member || member.role !== MemberRole.ADMIN) {
+                return c.json({ message: "Unauthorized" }, 403);
+            }
+            const existingWorkspace = await prisma.workspace.findUnique({
+                where: {
+                    id: workspaceId,
+                },
+            });
+            if (!existingWorkspace) {
+                return c.json({ message: "Workspace not found" }, 404);
+            }
+
+            // Workspace -> Project/Member -> Task/Comment are configured with onDelete: Cascade.
+            await prisma.workspace.delete({
+                where: {
+                    id: workspaceId,
+                },
+            });
+            return c.json({ message: "Workspace deleted successfully" }, 200);
+        }
     );
 
 export default app

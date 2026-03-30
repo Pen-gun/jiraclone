@@ -1,6 +1,6 @@
 "use server";
 
-import { getSession } from "@/lib/createSessionClient";
+import { getSession } from "@/lib/getSessionClient";
 
 export const getCurrentUser = async () => {
    try {
