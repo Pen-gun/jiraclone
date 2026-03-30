@@ -4,7 +4,7 @@ import { createWorkspaceSchema, updateWorkspaceSchema } from "../schemas";
 import { sessionMiddleware } from "@/lib/session-middelware";
 import { prisma } from "@/lib/prismaHelper";
 import { generateInviteCode } from "@/lib/utils";
-import { getMembers } from "@/features/members/utils";
+import { validateWorkspaceAccess } from "@/features/members/utils";
 import { MemberRole } from "@/features/members/types";
 
 const app = new Hono()
@@ -56,77 +56,80 @@ const app = new Hono()
         sessionMiddleware,
         zValidator("form", updateWorkspaceSchema),
         async (c) => {
-            const user = c.get("user");
-            const { workspaceId } = c.req.param();
-            const { name } = c.req.valid("form");
+            try {
+                const user = c.get("user");
+                const { workspaceId } = c.req.param();
+                const { name } = c.req.valid("form");
 
-            if (typeof name === "undefined") {
-                return c.json({ message: "Workspace name is required" }, 400);
+                if (typeof name === "undefined") {
+                    return c.json({ message: "Workspace name is required" }, 400);
+                }
+
+                await validateWorkspaceAccess({
+                    workspaceId,
+                    userId: user.id,
+                });
+
+                const workspace = await prisma.workspace.update({
+                    where: { id: workspaceId },
+                    data: { name },
+                });
+                return c.json({ data: workspace }, 200);
+            } catch (error) {
+                const message = error instanceof Error ? error.message : "Internal server error";
+                const statusCode = message === "Unauthorized" ? 403 : message === "Workspace not found" ? 404 : 500;
+                return c.json({ message }, statusCode);
             }
-
-            const member = await getMembers({
-                workspaceId,
-                userId: user.id,
-            });
-
-            if( !member || member.role !== MemberRole.ADMIN) {
-                return c.json({ message: "Unauthorized" }, 403);
-            }
-
-            const existingWorkspace = await prisma.workspace.findUnique({
-                where: {
-                    id: workspaceId,
-                },
-                select: {
-                    id: true,
-                },
-            });
-
-            if (!existingWorkspace) {
-                return c.json({ message: "Workspace not found" }, 404);
-            }
-
-            const workspace = await prisma.workspace.update({
-                where: {
-                    id: workspaceId,
-                },
-                data: {
-                    name,
-                },
-            });
-            return c.json({ data: workspace }, 200);
         }
     )
     .delete(
         "/:workspaceId",
         sessionMiddleware,
         async (c) => {
-            const user = c.get("user");
-            const { workspaceId } = c.req.param();
-            const member = await getMembers({
-                workspaceId,
-                userId: user.id,
-            });
-            if( !member || member.role !== MemberRole.ADMIN) {
-                return c.json({ message: "Unauthorized" }, 403);
-            }
-            const existingWorkspace = await prisma.workspace.findUnique({
-                where: {
-                    id: workspaceId,
-                },
-            });
-            if (!existingWorkspace) {
-                return c.json({ message: "Workspace not found" }, 404);
-            }
+            try {
+                const user = c.get("user");
+                const { workspaceId } = c.req.param();
+                const workspace = await validateWorkspaceAccess({
+                    workspaceId,
+                    userId: user.id,
+                });
 
-            // Workspace -> Project/Member -> Task/Comment are configured with onDelete: Cascade.
-            await prisma.workspace.delete({
-                where: {
-                    id: workspaceId,
-                },
-            });
-            return c.json({data: existingWorkspace}, 200);
+                // Workspace -> Project/Member -> Task/Comment are configured with onDelete: Cascade.
+                await prisma.workspace.delete({
+                    where: { id: workspaceId },
+                });
+                return c.json({ data: workspace }, 200);
+            } catch (error) {
+                const message = error instanceof Error ? error.message : "Internal server error";
+                const statusCode = message === "Unauthorized" ? 403 : message === "Workspace not found" ? 404 : 500;
+                return c.json({ message }, statusCode);
+            }
         }
-    );
+    )
+    .post(
+        "/:workspaceId/reset-invite-code",
+        sessionMiddleware,
+        async (c) => {
+            try {
+                const user = c.get("user");
+                const { workspaceId } = c.req.param();
+                await validateWorkspaceAccess({
+                    workspaceId,
+                    userId: user.id,
+                });
+
+                const workspace = await prisma.workspace.update({
+                    where: { id: workspaceId },
+                    data: { inviteCode: generateInviteCode(6) },
+                });
+                return c.json({ data: workspace }, 200);
+            } catch (error) {
+                const message = error instanceof Error ? error.message : "Internal server error";
+                const statusCode = message === "Unauthorized" ? 403 : message === "Workspace not found" ? 404 : 500;
+                return c.json({ message }, statusCode);
+            }
+        }
+    )
+
 
 export default app
