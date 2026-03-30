@@ -45,7 +45,6 @@ export const EditWorkspaceForm = ({ onCancel, initialWorkspace }: EditWorkspaceF
                 showJsonToast("Workspace updated successfully", { name: values.name });
                 form.reset();
                 router.push(`/workspaces/${data.id}`); // Navigate to the workspace page
-
             },
             onError: (error: any) => {
                 const message = error instanceof Error ? error.message : "An unknown error occurred";
