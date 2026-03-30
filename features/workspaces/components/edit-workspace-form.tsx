@@ -16,10 +16,12 @@ import { DottedSeparator } from "@/components/dotted-seperator";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useUpdateWorkspace } from "../api/use-update-workspace";
+import { useDeleteWorkspace } from "../api/use-delete-workspace";
 import { showJsonToast } from "@/components/toaster";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { ArrowLeftIcon } from "lucide-react";
+import { useConfirm } from "@/hooks/use-confirm";
 
 interface EditWorkspaceFormProps {
     onCancel?: () => void;
@@ -29,6 +31,13 @@ interface EditWorkspaceFormProps {
 export const EditWorkspaceForm = ({ onCancel, initialWorkspace }: EditWorkspaceFormProps) => {
     const router = useRouter();
     const { mutate, isPending } = useUpdateWorkspace();
+    const { mutate: deleteWorkspace, isPending: isDeleting } = useDeleteWorkspace();
+    const [DeleteConfirmationDialog, confirmDelete] = useConfirm(
+        "Confirm Deletion",
+        "Are you sure you want to delete this workspace? This action cannot be undone.",
+        "destructive"
+    );
+
     const form = useForm<z.infer<typeof updateWorkspaceSchema>>({
         resolver: zodResolver(updateWorkspaceSchema),
         defaultValues: {
@@ -53,8 +62,30 @@ export const EditWorkspaceForm = ({ onCancel, initialWorkspace }: EditWorkspaceF
         });
 
     };
+    const handleDelete = async () => {
+        const ok = await confirmDelete();
+        if (!ok) return;
+
+        deleteWorkspace(
+            { param: { workspaceId: initialWorkspace.id } },
+            {
+                onSuccess: () => {
+                    showJsonToast("Workspace deleted successfully", {
+                        name: initialWorkspace.name,
+                    });
+                    router.push("/");
+                },
+                onError: (error) => {
+                    showJsonToast("Failed to delete workspace", {
+                        error: error.message,
+                    });
+                },
+            }
+        );
+    };
     return (
         <div className="flex flex-col gap-y-4">
+            <DeleteConfirmationDialog />
             <Card className="w-full h-full border-none shadow-none">
                 <CardHeader className="flex flex-row items-centergap-x-4 p-7 space-y-0">
                     <Button size='sm' variant='secondary' onClick={onCancel ? onCancel : () => router.back()} className="mr-3 cursor-pointer">
@@ -100,11 +131,11 @@ export const EditWorkspaceForm = ({ onCancel, initialWorkspace }: EditWorkspaceF
                                 type="button"
                                 variant="outline"
                                 onClick={onCancel}
-                                disabled={isPending}
+                                disabled={isPending || isDeleting}
                                 className={cn(!onCancel && "invisible")}>
                                 Cancel
                             </Button>
-                            <Button type="submit" className="mr-3" disabled={isPending}>
+                            <Button type="submit" className="mr-3 cursor-pointer" disabled={isPending || isDeleting}>
                                 {isPending ? "Saving..." : "Save Changes"}
                             </Button>
                         </div>
@@ -122,11 +153,12 @@ export const EditWorkspaceForm = ({ onCancel, initialWorkspace }: EditWorkspaceF
                         <Button 
                         type="button"
                         size='sm'
-                        className="mt-6 w-fit ml-auto"
+                        className="mt-6 w-fit ml-auto cursor-pointer"
                         variant="destructive"
-                        disabled={isPending}
-                        onClick={()=>{}}>
-                            Delete Workspace
+                        disabled={isPending || isDeleting}
+                        onClick={handleDelete}
+                        >
+                            {isDeleting ? "Deleting..." : "Delete Workspace"}
                         </Button>
                     </div>
                 </CardContent>
