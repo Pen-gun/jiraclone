@@ -125,7 +125,7 @@ const app = new Hono()
                     id: workspaceId,
                 },
             });
-            return c.json({ message: "Workspace deleted successfully" }, 200);
+            return c.json({data: existingWorkspace}, 200);
         }
     );
 

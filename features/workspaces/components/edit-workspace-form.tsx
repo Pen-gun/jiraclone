@@ -5,11 +5,11 @@ import { Controller, useForm } from "react-hook-form";
 import { updateWorkspaceSchema } from "../schemas";
 import { Workspace } from "../types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
- import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
+import {
+    Field,
+    FieldError,
+    FieldGroup,
+    FieldLabel,
 } from "@/components/ui/field"
 import { z } from "zod";
 import { DottedSeparator } from "@/components/dotted-seperator";
@@ -28,20 +28,20 @@ interface EditWorkspaceFormProps {
 
 export const EditWorkspaceForm = ({ onCancel, initialWorkspace }: EditWorkspaceFormProps) => {
     const router = useRouter();
-    const { mutate, isPending} = useUpdateWorkspace();
+    const { mutate, isPending } = useUpdateWorkspace();
     const form = useForm<z.infer<typeof updateWorkspaceSchema>>({
-        resolver:zodResolver(updateWorkspaceSchema),
+        resolver: zodResolver(updateWorkspaceSchema),
         defaultValues: {
             ...initialWorkspace,
         }
     });
     const onSubmit = async (values: z.infer<typeof updateWorkspaceSchema>) => {
-        mutate({ 
+        mutate({
             form: values,
             param: { workspaceId: initialWorkspace.id }
 
-         },{
-            onSuccess: ({data}) => {
+        }, {
+            onSuccess: ({ data }) => {
                 showJsonToast("Workspace updated successfully", { name: values.name });
                 form.reset();
                 router.push(`/workspaces/${data.id}`); // Navigate to the workspace page
@@ -52,65 +52,87 @@ export const EditWorkspaceForm = ({ onCancel, initialWorkspace }: EditWorkspaceF
             }
         });
 
-    };  
-    return(
-        <Card className="w-full h-full border-none shadow-none">
-            <CardHeader className="flex flex-row items-centergap-x-4 p-7 space-y-0">
-                <Button size='sm' variant='secondary' onClick={onCancel ? onCancel : () => router.back()} className="mr-3 cursor-pointer">
-                    <ArrowLeftIcon className="size-4 mr-2" />
-                    Back
-                </Button>
-                <CardTitle className="text-xl font-bold">
-                    {initialWorkspace.name}
-                </CardTitle>
-            </CardHeader>
-            <div className="px-7">
-                <DottedSeparator />
-            </div>
-            <CardContent className="p-7">
-                <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
-                    <FieldGroup>
-                        <Controller
-                            name="name"
-                            control={form.control}
-                            render={({ field, fieldState }) => (
-                                <Field data-invalid = {fieldState.invalid}>
-                                    <FieldLabel>
-                                        Workspace Name
-                                    </FieldLabel>
-                                    <Input
-                                    {...field}
-                                    aria-invalid={fieldState.invalid}
-                                    placeholder="Enter workspace name"
-                                    autoComplete="off"
-                                    />
-                                    {fieldState.error && (
-                                        <FieldError>
-                                            {fieldState.error.message}
-                                        </FieldError>
-                                    )}
-                                </Field>
-                            )}
-                        />
-                    </FieldGroup>
-                    <DottedSeparator className="my-6" />
-                    <div className="flex justify-between">
+    };
+    return (
+        <div className="flex flex-col gap-y-4">
+            <Card className="w-full h-full border-none shadow-none">
+                <CardHeader className="flex flex-row items-centergap-x-4 p-7 space-y-0">
+                    <Button size='sm' variant='secondary' onClick={onCancel ? onCancel : () => router.back()} className="mr-3 cursor-pointer">
+                        <ArrowLeftIcon className="size-4 mr-2" />
+                        Back
+                    </Button>
+                    <CardTitle className="text-xl font-bold">
+                        {initialWorkspace.name}
+                    </CardTitle>
+                </CardHeader>
+                <div className="px-7">
+                    <DottedSeparator />
+                </div>
+                <CardContent className="p-7">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
+                        <FieldGroup>
+                            <Controller
+                                name="name"
+                                control={form.control}
+                                render={({ field, fieldState }) => (
+                                    <Field data-invalid={fieldState.invalid}>
+                                        <FieldLabel>
+                                            Workspace Name
+                                        </FieldLabel>
+                                        <Input
+                                            {...field}
+                                            aria-invalid={fieldState.invalid}
+                                            placeholder="Enter workspace name"
+                                            autoComplete="off"
+                                        />
+                                        {fieldState.error && (
+                                            <FieldError>
+                                                {fieldState.error.message}
+                                            </FieldError>
+                                        )}
+                                    </Field>
+                                )}
+                            />
+                        </FieldGroup>
+                        <DottedSeparator className="my-6" />
+                        <div className="flex justify-between">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={onCancel}
+                                disabled={isPending}
+                                className={cn(!onCancel && "invisible")}>
+                                Cancel
+                            </Button>
+                            <Button type="submit" className="mr-3" disabled={isPending}>
+                                {isPending ? "Saving..." : "Save Changes"}
+                            </Button>
+                        </div>
+                    </form>
+                </CardContent>
+
+            </Card>
+            <Card className="w-full h-full border-none shadow-none">
+                <CardContent className="p-7">
+                    <div className="flex flex-col">
+                        <h3 className="font-bold">Danger Zone</h3>
+                        <p className="text-sm text-muted-foreground">
+                            Deleting a workspace is a permanent action and cannot be undone.
+                        </p>
                         <Button 
-                        type="button" 
-                        variant="outline" 
-                        onClick={onCancel} 
-                        disabled = {isPending}
-                        className={cn(!onCancel && "invisible")}>
-                            Cancel
-                        </Button>
-                        <Button type="submit" className="mr-3" disabled={isPending}>
-                            {isPending ? "Saving..." : "Save Changes"}
+                        type="button"
+                        size='sm'
+                        className="mt-6 w-fit ml-auto"
+                        variant="destructive"
+                        disabled={isPending}
+                        onClick={()=>{}}>
+                            Delete Workspace
                         </Button>
                     </div>
-                </form>
-            </CardContent>
-            
-        </Card>
+                </CardContent>
+
+            </Card>
+        </div>
 
     )
 }
