@@ -1,4 +1,4 @@
-import { getCurrentUser } from "@/features/queries";
+import { getCurrentUser } from "@/features/auth/queries";
 import { getWorkspaces } from "@/features/workspaces/action";
 import { redirect } from "next/navigation";
 

@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { z } from "zod";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { onBoardingFormSchema } from "@/features/schemas";
+import { onBoardingFormSchema } from "@/features/auth/schemas";
 import { useOnboarding } from "@/features/auth/api/use-onboarding";
 import { useRouter } from "next/navigation";
 

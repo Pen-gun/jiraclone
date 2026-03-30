@@ -23,7 +23,7 @@ import { useRouter } from "next/navigation";
 import {z} from "zod";
 import {Controller, useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
-import { signUpFormSchema } from "@/features/schemas";
+import { signUpFormSchema } from "@/features/auth/schemas";
 import { useRegister } from "@/features/auth/api/use-register";
 
 export const SignUpCard = () => {

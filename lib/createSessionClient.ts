@@ -1,12 +1,14 @@
-"use server";
+import "server-only";
 
 import { cookies } from "next/headers";
-import { prisma } from "@/lib/prismaHelper";
-import { AUTH_COOKIE_NAME } from "./auth/constant";
+import { prisma } from "./prismaHelper";
+import { AUTH_COOKIE_NAME } from "@/features/auth/constant";
 
-export const getCurrentUser = async () => {
-    const session = (await cookies()).get(AUTH_COOKIE_NAME);
-    if (!session) {
+export const getSession = async () => {
+    const cookieStore = await cookies();
+    const session = cookieStore.get(AUTH_COOKIE_NAME);
+
+    if (!session?.value) {
         return null;
     }
 
@@ -38,8 +40,8 @@ export const getCurrentUser = async () => {
             return null;
         }
 
-        return dbSession.user;
-    } catch (error) {
+        return dbSession;
+    } catch {
         return null;
     }
 };
