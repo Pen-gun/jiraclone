@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { InferRequestType } from "hono";
+import { ArrowLeftIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import { DottedSeparator } from "@/components/dotted-seperator";
 import { showJsonToast } from "@/components/toaster";
@@ -38,6 +40,7 @@ interface ManageMembersFormProps {
 }
 
 export const ManageMembersForm = ({ workspaceId }: ManageMembersFormProps) => {
+    const router = useRouter();
     const { data, isLoading, isError, error } = useGetMembers({ workspaceId });
     const { mutate: updateMember, isPending: isUpdating } = useUpdateMember();
     const { mutate: deleteMember, isPending: isDeleting } = useDeleteMember();
@@ -114,8 +117,14 @@ export const ManageMembersForm = ({ workspaceId }: ManageMembersFormProps) => {
         <div>
             <DeleteConfirmationDialog />
             <Card className="w-full h-full border-none shadow-none">
-                <CardHeader className="p-7">
-                    <CardTitle className="text-xl font-bold">Manage Members</CardTitle>
+                <CardHeader className="flex flex-row items-centergap-x-4 p-7 space-y-0">
+                    <Button size='sm' variant='secondary' onClick={() => router.back()} className="mr-3 cursor-pointer">
+                        <ArrowLeftIcon className="size-4 mr-2" />
+                        Back
+                    </Button>
+                    <CardTitle className="text-xl font-bold">
+                        Manage Members
+                    </CardTitle>
                 </CardHeader>
                 <div className="px-7">
                     <DottedSeparator />
