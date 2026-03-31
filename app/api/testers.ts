@@ -1,33 +1,32 @@
-import { swaggerUI } from '@hono/swagger-ui'
-import type { Hono } from 'hono'
+import { swaggerUI } from "@hono/swagger-ui";
+import { Hono } from "hono";
 
-import { AUTH_COOKIE_NAME } from '@/features/auth/constant'
+import { AUTH_COOKIE_NAME } from "@/features/auth/constant";
 
 export const openApiDocument = {
-    openapi: '3.0.3',
+    openapi: "3.0.0",
     info: {
-        title: 'Jira Clone API',
-        version: '1.0.1',
-        description: 'API documentation for auth and workspace endpoints.',
+        title: "API Documentation",
+        version: "1.0.0",
+        description: "API documentation for the application",
     },
-    tags: [
-        {
-            name: 'Authentication',
-            description: 'Login, registration, and session lifecycle endpoints.',
-        },
-        {
-            name: 'User',
-            description: 'Current user profile and onboarding endpoints.',
-        },
-        {
-            name: 'Workspace Management',
-            description: 'Workspace listing and CRUD actions.',
-        },
+    tags: [{
+        name: "Auth",
+        description: "Authentication related endpoints",
+    },
+    {
+        name: "User",
+        description: "User management endpoints",
+    },
+    {
+        name: "Workspace",
+        description: "Workspace management endpoints",
+    }
     ],
     servers: [
         {
-            url: '/api',
-        },
+            url: "/api",
+        }
     ],
     components: {
         securitySchemes: {
@@ -39,10 +38,10 @@ export const openApiDocument = {
         },
     },
     paths: {
-        '/auth/login': {
+        "/auth/login": {
             post: {
-                tags: ['Authentication'],
-                summary: 'Sign in user',
+                tags: ["Auth"],
+                summary: "User login",
                 requestBody: {
                     required: true,
                     content: {
@@ -54,20 +53,33 @@ export const openApiDocument = {
                                     email: { type: 'string', format: 'email' },
                                     password: { type: 'string' },
                                 },
-                            },
+                            }
+                        }
+                    }
+                },
+                response: {
+                    '200': {
+                        description: 'Successful login',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        message: { type: 'string' },
+                                        token: { type: 'string' },
+                                    },
+                                }
+                            }
                         },
-                    },
-                },
-                responses: {
-                    '200': { description: 'Signed in' },
-                    '401': { description: 'Invalid credentials' },
-                },
-            },
+                        '401': { description: 'Unauthorized' },
+                    }
+                }
+            }
         },
-        '/auth/register': {
+        "/auth/register": {
             post: {
-                tags: ['Authentication'],
-                summary: 'Register user',
+                tags: ["Auth"],
+                summary: "User registration",
                 requestBody: {
                     required: true,
                     content: {
@@ -79,20 +91,33 @@ export const openApiDocument = {
                                     email: { type: 'string', format: 'email' },
                                     password: { type: 'string' },
                                 },
-                            },
-                        },
+                            }
+                        }
+                    }
+                },
+                response: {
+                    '201': {
+                        description: 'User created successfully',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        message: { type: 'string' },
+                                        userId: { type: 'string' },
+                                    },
+                                }
+                            }
+                        }
                     },
-                },
-                responses: {
-                    '201': { description: 'Registered' },
-                    '500': { description: 'Registration failed' },
-                },
-            },
+                    '400': { description: 'Bad request' },
+                }
+            }
         },
-        '/auth/onboarding': {
+        "/auth/onboarding": {
             post: {
-                tags: ['User'],
-                summary: 'Complete onboarding',
+                tags: ["Auth"],
+                summary: "User onboarding",
                 security: [{ cookieAuth: [] }],
                 requestBody: {
                     required: true,
@@ -100,31 +125,32 @@ export const openApiDocument = {
                         'application/json': {
                             schema: {
                                 type: 'object',
+                                required: ['name', 'age', 'bio'],
                                 properties: {
-                                    fullName: { type: 'string' },
-                                    age: { type: 'integer' },
+                                    name: { type: 'string' },
+                                    age: { type: 'number' },
                                     bio: { type: 'string' },
                                 },
-                            },
-                        },
-                    },
+                            }
+                        }
+                    }
                 },
-                responses: {
-                    '200': { description: 'Onboarding completed' },
+                response: {
+                    '200': { description: 'Onboarding completed successfully' },
                     '401': { description: 'Unauthorized' },
-                },
-            },
+                }
+            }
         },
-        '/auth/logout': {
+        "/auth/logout": {
             post: {
-                tags: ['Authentication'],
-                summary: 'Sign out user',
+                tags: ["Auth"],
+                summary: "User logout",
                 security: [{ cookieAuth: [] }],
-                responses: {
-                    '200': { description: 'Logged out' },
+                response: {
+                    '200': { description: 'Logout successful' },
                     '401': { description: 'Unauthorized' },
-                },
-            },
+                }
+            }
         },
         '/auth/me': {
             get: {
@@ -137,19 +163,40 @@ export const openApiDocument = {
                 },
             },
         },
-        '/workspaces': {
+        "/workspaces": {
             get: {
-                tags: ['Workspace Management'],
-                summary: 'List user workspaces',
+                tags: ["Workspace"],
+                summary: "Get user workspaces",
                 security: [{ cookieAuth: [] }],
-                responses: {
-                    '200': { description: 'Workspace list' },
+                response: {
+                    '200': {
+                        description: 'List of user workspaces',
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'array',
+                                    items: {
+                                        type: 'object',
+                                        properties: {
+                                            id: { type: 'string' },
+                                            name: { type: 'string' },
+                                            ownerId: { type: 'string' },
+                                            inviteCode: { type: 'string' },
+                                            createdAt: { type: 'string', format: 'date-time' },
+                                            role: { type: 'string' },
+                                        },
+                                    }
+                                }
+                            }
+                        }
+
+                    },
                     '401': { description: 'Unauthorized' },
                 },
             },
             post: {
-                tags: ['Workspace Management'],
-                summary: 'Create workspace',
+                tags: ["Workspace"],
+                summary: "Create a new workspace",
                 security: [{ cookieAuth: [] }],
                 requestBody: {
                     required: true,
@@ -161,19 +208,20 @@ export const openApiDocument = {
                                 properties: {
                                     name: { type: 'string' },
                                 },
-                            },
-                        },
-                    },
+                            }
+                        }
+                    }
                 },
-                responses: {
-                    '201': { description: 'Workspace created' },
+                response: {
+                    '201': { description: 'Workspace created successfully' },
+                    '400': { description: 'Bad request' },
                     '401': { description: 'Unauthorized' },
-                },
+                }
             },
         },
         '/workspaces/{workspaceId}': {
             patch: {
-                tags: ['Workspace Management'],
+                tags: ['Workspace'],
                 summary: 'Update workspace',
                 security: [{ cookieAuth: [] }],
                 parameters: [
@@ -207,7 +255,7 @@ export const openApiDocument = {
                 },
             },
             delete: {
-                tags: ['Workspace Management'],
+                tags: ['Workspace'],
                 summary: 'Delete workspace',
                 security: [{ cookieAuth: [] }],
                 parameters: [
@@ -228,7 +276,7 @@ export const openApiDocument = {
         },
         '/workspaces/{workspaceId}/reset-invite-code': {
             post: {
-                tags: ['Workspace Management'],
+                tags: ['Workspace'],
                 summary: 'Reset workspace invite code',
                 security: [{ cookieAuth: [] }],
                 parameters: [
@@ -249,7 +297,7 @@ export const openApiDocument = {
         },
         '/workspaces/{workspaceId}/join': {
             post: {
-                tags: ['Workspace Management'],
+                tags: ['Workspace'],
                 summary: 'Join workspace by invite code',
                 security: [{ cookieAuth: [] }],
                 parameters: [
@@ -282,10 +330,12 @@ export const openApiDocument = {
                 },
             },
         },
-    },
-} as const
+    }
+} as const;
 
-export const registerOpenApiDocs = (app: Hono) => {
-    app.get('/openapi.json', (c) => c.json(openApiDocument))
-    app.get('/docs', swaggerUI({ url: '/api/openapi.json' }))
+export const registerOpenApiDocuments = (app: Hono) => {
+    const basePath = '/test-docs' // test docs base path
+    app.get(`${basePath}/openapi.json`, (c) => c.json(openApiDocument))
+    app.get(`${basePath}/docs`, swaggerUI({ url: 'openapi.json' }))
 }
+// to navigate to the docs, go to http://localhost:3000/api/test-docs/docs
