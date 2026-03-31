@@ -1,7 +1,7 @@
 # Jira Clone - Current Project Documentation
 
-Last updated: 2026-03-29
-Status: In-progress prototype with working authentication + onboarding + workspace create/list/update flow
+Last updated: 2026-03-31
+Status: In-progress prototype with working authentication + onboarding + workspace create/list/update + workspace member management flow
 
 ## 1) Project Overview
 
@@ -11,11 +11,13 @@ Current main purpose:
 - Authenticate users (sign up, sign in, sign out)
 - Collect onboarding profile data
 - Create and list workspaces for authenticated users
+- Manage workspace members (list, update role, remove member)
 - Route authenticated users to their first workspace
 
 What this means right now:
 - The app has a working account and session system.
 - Workspace creation exists at API + UI component level.
+- Workspace member management exists at API + settings UI level.
 - Task and comment features are defined in database schema but not implemented in UI/API yet.
 
 ## 2) Tech Stack
@@ -142,6 +144,11 @@ This section explains the important folders as they exist now.
 	- `components/*`: create/edit workspace forms + avatar.
 	- `hooks/use-workspace-id.ts`: route param helper.
 
+- `features/members/`
+	- `server/route.ts`: list/update/delete member endpoints.
+	- `api/*`: React Query hooks for members API.
+	- `components/manage-members-form.tsx`: members management UI in workspace settings.
+
 
 - `features/members/types.ts`
 	- Defines `MemberRole` enum used for workspace membership role.
@@ -225,6 +232,23 @@ Client-side:
 
 Workspace settings page:
 - `app/(standalone)/workspaces/[workspaceId]/settings/page.tsx` checks auth and admin/owner access before rendering edit form.
+
+### E) Workspace members flow
+
+Implemented endpoints in `features/members/server/route.ts`:
+
+- `GET /api/members?workspaceId=...` (protected)
+	- Returns current member context and workspace member list.
+
+- `PATCH /api/members/:memberId?workspaceId=...` (protected, admin only)
+	- Updates member role.
+
+- `DELETE /api/members/:memberId?workspaceId=...` (protected, admin only)
+	- Removes member from workspace.
+
+Client-side:
+- `ManageMembersForm` in workspace settings uses `useGetMembers`, `useUpdateMember`, and `useDeleteMember`.
+- Admin members are protected by backend rules (cannot be updated/deleted).
 
 ### D) Routing behavior on home page
 
