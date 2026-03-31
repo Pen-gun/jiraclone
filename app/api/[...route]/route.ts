@@ -3,6 +3,7 @@ import { Hono } from 'hono'
 
 import auth from '@/features/auth/server/route'
 import workspace from '@/features/workspaces/server/route'
+import members from '@/features/members/server/route'
 import { registerOpenApiDocs } from '../openapi'
 import { registerOpenApiDocuments } from '../testers'
 
@@ -13,6 +14,7 @@ registerOpenApiDocuments(app)
 const routes = app
     .route('/auth', auth)
     .route('/workspaces', workspace)
+    .route('/members', members)
 
 export type AppType = typeof routes;
 

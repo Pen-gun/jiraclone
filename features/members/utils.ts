@@ -1,22 +1,22 @@
 import { prisma } from "@/lib/prismaHelper";
 import { MemberRole } from "./types";
 
-interface GetMembersProps {
+interface GetMemberProps {
     workspaceId: string;
     userId: string;
 }
 
-export const getMembers = async ({
+export const getMember = async ({
     workspaceId,
     userId,
-}: GetMembersProps) => {
-    const members = await prisma.workspaceMember.findFirst({
+}: GetMemberProps) => {
+    const member = await prisma.workspaceMember.findFirst({
         where: {
                 workspaceId,
                 userId,
             },
     })
-    return members;
+    return member;
 }
 
 interface ValidateWorkspaceAccessProps {
@@ -32,7 +32,7 @@ export const validateWorkspaceAccess = async ({
     workspaceId,
     userId,
 }: ValidateWorkspaceAccessProps) => {
-    const member = await getMembers({ workspaceId, userId });
+    const member = await getMember({ workspaceId, userId });
     
     if (!member || member.role !== MemberRole.ADMIN) {
         throw new Error("Unauthorized");
