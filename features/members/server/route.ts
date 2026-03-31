@@ -28,7 +28,16 @@ const app = new Hono()
 
             const populatemembers = await prisma.workspaceMember.findMany({
                 where: { workspaceId },
-                select: { id: true, userId: true, role: true }, // optional
+                select: { 
+                    id: true, 
+                    userId: true, 
+                    role: true,
+                    user: {
+                        select: {
+                            fullName: true
+                        }
+                    }
+                 },
             });
 
             return c.json({

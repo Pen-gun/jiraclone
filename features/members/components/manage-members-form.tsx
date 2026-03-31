@@ -137,7 +137,7 @@ export const ManageMembersForm = ({ workspaceId }: ManageMembersFormProps) => {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>User Id</TableHead>
+                                    <TableHead>Name</TableHead>
                                     <TableHead>Role</TableHead>
                                     <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
@@ -149,7 +149,7 @@ export const ManageMembersForm = ({ workspaceId }: ManageMembersFormProps) => {
 
                                     return (
                                         <TableRow key={member.id}>
-                                            <TableCell className="font-medium">{member.userId}</TableCell>
+                                            <TableCell className="font-medium">{member.user.fullName ?? member.userId}</TableCell>
                                             <TableCell>
                                                 <Badge variant={member.role === "ADMIN" ? "default" : "secondary"}>
                                                     {member.role}
