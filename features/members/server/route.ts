@@ -7,40 +7,39 @@ import { getMember } from '../utils';
 import { prisma } from '@/lib/prismaHelper';
 import { MemberRole } from '../types';
 
-const app = new Hono();
-
-app.get(
-    '/',
-    sessionMiddleware,
-    zValidator('query', z.object({ workspaceId: z.string() })),
-    async (c) => {
-        const session = await getSession();
-        if (!session) {
-            return c.json({ error: 'Unauthorized' }, 401);
-        }
-
-        const user = c.get('user');
-        const { workspaceId } = c.req.valid('query');
-
-        const member = await getMember({ workspaceId, userId: user.id });
-        if (!member) {
-            return c.json({ error: 'Unauthorized' }, 401);
-        }
-
-        const populatemembers = await prisma.workspaceMember.findMany({
-            where: { workspaceId },
-            select: { id: true, userId: true, role: true }, // optional
-        });
-
-        return c.json({
-            data: {
-                ...member,
-                member: populatemembers,
+const app = new Hono()
+    .get(
+        '/',
+        sessionMiddleware,
+        zValidator('query', z.object({ workspaceId: z.string() })),
+        async (c) => {
+            const session = await getSession();
+            if (!session) {
+                return c.json({ error: 'Unauthorized' }, 401);
             }
-        });
-    },
 
-)
+            const user = c.get('user');
+            const { workspaceId } = c.req.valid('query');
+
+            const member = await getMember({ workspaceId, userId: user.id });
+            if (!member) {
+                return c.json({ error: 'Unauthorized' }, 401);
+            }
+
+            const populatemembers = await prisma.workspaceMember.findMany({
+                where: { workspaceId },
+                select: { id: true, userId: true, role: true }, // optional
+            });
+
+            return c.json({
+                data: {
+                    ...member,
+                    member: populatemembers,
+                }
+            });
+        },
+
+    )
     .delete(
         "/:memberId",
         sessionMiddleware,
@@ -90,7 +89,7 @@ app.get(
         sessionMiddleware,
         zValidator("query", z.object({ workspaceId: z.string() })),
         zValidator("json", z.object({ role: z.enum(MemberRole) })),
-         async (c) => {
+        async (c) => {
             const { memberId } = c.req.param();
             const { workspaceId } = c.req.valid("query");
 
@@ -129,10 +128,8 @@ app.get(
                 where: { id: memberId },
                 data: { role },
             });
-
             return c.json({ success: true });
         }
-
     )
 
 export default app;
