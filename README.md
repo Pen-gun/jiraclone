@@ -22,6 +22,7 @@ Current milestone: authentication, onboarding, and first workspace creation flow
 - Auth API endpoints under `/api/auth`
 - Workspace create/list endpoints under `/api/workspaces` (stored in `Workspace` + `WorkspaceMember` models)
 - Workspace invite flow (`join` + `reset-invite-code`) under `/api/workspaces`
+- Workspace member list/update/remove endpoints under `/api/members`
 - Session table with cookie-based auth token (`auth_token`)
 - Server-side auth gate on the home page
 - Client-side current-user fetch via React Query
@@ -63,6 +64,13 @@ features/
     api/use-create-workspace.ts
     components/create-workspace-form.tsx
     schemas.ts
+    server/route.ts
+  members/
+    api/
+      use-delete-member.ts
+      use-get-members.ts
+      use-update-method.ts
+    components/manage-members-form.tsx
     server/route.ts
 
 lib/
@@ -146,6 +154,13 @@ npm run lint
 2. Invite links use `/workspaces/:workspaceId/join/:invitecode`.
 3. Join flow posts `inviteCode` to `POST /api/workspaces/:workspaceId/join`.
 4. Route validates code, prevents duplicate membership, then creates a `WorkspaceMember` row with `MEMBER` role.
+
+## Member Management Flow (Current)
+
+1. Workspace members page renders `ManageMembersForm`.
+2. `useGetMembers` fetches members for `workspaceId` from `GET /api/members`.
+3. `useUpdateMember` updates role through `PATCH /api/members/:memberId` with `workspaceId` query.
+4. `useDeleteMember` removes non-admin members through `DELETE /api/members/:memberId` with `workspaceId` query.
 
 ## Known Gaps
 

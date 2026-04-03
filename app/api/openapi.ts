@@ -7,8 +7,8 @@ export const openApiDocument = {
     openapi: '3.0.3',
     info: {
         title: 'Jira Clone API',
-        version: '1.0.0',
-        description: 'API documentation for auth and workspace endpoints.',
+        version: '1.0.1',
+        description: 'API documentation for auth, workspace, and members endpoints.',
     },
     tags: [
         {
@@ -22,6 +22,10 @@ export const openApiDocument = {
         {
             name: 'Workspace Management',
             description: 'Workspace listing and CRUD actions.',
+        },
+        {
+            name: 'Member Management',
+            description: 'Workspace member listing and role management actions.',
         },
     ],
     servers: [
@@ -279,6 +283,94 @@ export const openApiDocument = {
                     '400': { description: 'Already a member' },
                     '404': { description: 'Invalid invite code' },
                     '500': { description: 'Failed to join workspace' },
+                },
+            },
+        },
+        '/members': {
+            get: {
+                tags: ['Member Management'],
+                summary: 'List workspace members',
+                security: [{ cookieAuth: [] }],
+                parameters: [
+                    {
+                        name: 'workspaceId',
+                        in: 'query',
+                        required: true,
+                        schema: { type: 'string' },
+                    },
+                ],
+                responses: {
+                    '200': { description: 'Workspace members list' },
+                    '401': { description: 'Unauthorized' },
+                },
+            },
+        },
+        '/members/{memberId}': {
+            patch: {
+                tags: ['Member Management'],
+                summary: 'Update workspace member role',
+                security: [{ cookieAuth: [] }],
+                parameters: [
+                    {
+                        name: 'memberId',
+                        in: 'path',
+                        required: true,
+                        schema: { type: 'string' },
+                    },
+                    {
+                        name: 'workspaceId',
+                        in: 'query',
+                        required: true,
+                        schema: { type: 'string' },
+                    },
+                ],
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                required: ['role'],
+                                properties: {
+                                    role: {
+                                        type: 'string',
+                                        enum: ['MEMBER', 'ADMIN'],
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+                responses: {
+                    '200': { description: 'Member role updated' },
+                    '401': { description: 'Unauthorized' },
+                    '403': { description: 'Forbidden' },
+                    '404': { description: 'Member not found' },
+                },
+            },
+            delete: {
+                tags: ['Member Management'],
+                summary: 'Remove workspace member',
+                security: [{ cookieAuth: [] }],
+                parameters: [
+                    {
+                        name: 'memberId',
+                        in: 'path',
+                        required: true,
+                        schema: { type: 'string' },
+                    },
+                    {
+                        name: 'workspaceId',
+                        in: 'query',
+                        required: true,
+                        schema: { type: 'string' },
+                    },
+                ],
+                responses: {
+                    '200': { description: 'Member removed' },
+                    '401': { description: 'Unauthorized' },
+                    '403': { description: 'Forbidden' },
+                    '404': { description: 'Member not found' },
                 },
             },
         },
