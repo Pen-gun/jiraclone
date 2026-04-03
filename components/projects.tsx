@@ -18,13 +18,13 @@ export const Projects = () => {
     const { openModal } = useCreateProjectModal();
 
     return (
-        <div className="flex flex-col gap-y-2">
+        <div className="flex flex-col gap-y-1.5">
             <div className="flex items-center justify-between">
-                <p className="text-xs uppercase text-neutral-500">
+                <p className="text-[10px] uppercase tracking-wide text-neutral-500">
                     Projects
                 </p>
                 <RiAddCircleFill
-                    className="size-5 text-neutral-500 cursor-pointer hover:opacity-75 transition"
+                    className="size-4 text-neutral-500 cursor-pointer hover:opacity-75 transition"
                     onClick={openModal}
                 />
             </div>
@@ -39,10 +39,10 @@ export const Projects = () => {
                         href={href}
                     >
                         <div className={cn(
-                            "flex items-center gap-2.5 p-2.5 rounded-md hover:opacity-75 transition cursor-pointer text-neutral-500", 
+                            "flex items-center gap-2 p-2 rounded-md hover:opacity-75 transition cursor-pointer text-neutral-500", 
                             isActive && "bg-white shadow-sm hover:opacity-100 text-primary")}>
                                 <ProjectAvatar name={project.name} />
-                            <span className="truncate">{project.name}</span>
+                            <span className="truncate text-sm">{project.name}</span>
                         </div>
                     </Link>
                 );

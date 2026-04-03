@@ -9,15 +9,15 @@ import { Projects } from "./projects";
 
 export const Sidebar = () => {
     return(
-        <aside className="h-full bg-neutral-100 p-4 w-full">
+        <aside className="h-full bg-neutral-100 p-3 w-full">
             <Link href='/' >
-                <Image src="/logo.svg" alt="Logo" width={32} height={32} />
+                <Image src="/logo.svg" alt="Logo" width={28} height={28} />
             </Link>
-            <DottedSeparator className="my-4" />
+            <DottedSeparator className="my-3" />
             <WorkspaceSwitcher />
-            <DottedSeparator className="my-4" />
+            <DottedSeparator className="my-3" />
             <Navigation />
-            <DottedSeparator className="my-4" />
+            <DottedSeparator className="my-3" />
             <Projects />
         </aside>
     )

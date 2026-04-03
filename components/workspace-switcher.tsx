@@ -28,23 +28,23 @@ export const WorkspaceSwitcher = () => {
         router.push(`/workspaces/${id}`);
     }
     return (
-        <div className="flex flex-col gap-y-2">
+        <div className="flex flex-col gap-y-1.5">
             <div className="flex items-center justify-between">
-                <p className="text-xs uppercase text-neutral-500">
+                <p className="text-[10px] uppercase tracking-wide text-neutral-500">
                     Workspaces
                 </p>
-                <RiAddCircleFill className="size-5 text-neutral-500 cursor-pointer hover:opacity-75 transition" onClick={openModal} />
+                <RiAddCircleFill className="size-4 text-neutral-500 cursor-pointer hover:opacity-75 transition" onClick={openModal} />
             </div>
             <Select onValueChange={onSelect} value={workspaceid}>
-                <SelectTrigger className="w-full bg-neutral-200 font-medium p-1 rounded">
+                <SelectTrigger size="sm" className="w-full bg-neutral-200 font-medium px-2 rounded-md">
                     <SelectValue placeholder="Select a workspace" />
                 </SelectTrigger>
                 <SelectContent>
                     {data?.map((workspace) => (
                         <SelectItem key={workspace.id} value={workspace.id}>
-                            <div className="flex justify-start items-center gap-3 font-medium">
+                            <div className="flex justify-start items-center gap-2 font-medium">
                                 <WorkspaceAvatar name={workspace.name} />
-                                <span className="truncate">{workspace.name}</span>
+                                <span className="truncate text-sm">{workspace.name}</span>
                             </div>
                         </SelectItem>
                     ))}
