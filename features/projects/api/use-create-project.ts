@@ -21,8 +21,8 @@ export const useCreateProject = () => {
 
       return (await response.json()) as ResponseType;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["Projects", variables.form.workspaceId] });
     }
   });
 };

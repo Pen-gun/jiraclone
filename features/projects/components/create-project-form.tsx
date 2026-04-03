@@ -33,13 +33,14 @@ export const CreateProjectForm = ({ onCancel }: CreateProjectFormProps) => {
             name: "",
             description: "",
             workspaceId,
-        }
+        }   
     });
     const onSubmit = async (values: z.infer<typeof createProjectSchema>) => {
         mutate({ form: values },{
-            onSuccess: (project) => {
+            onSuccess: () => {
                 showJsonToast("Project created successfully", { name: values.name });
                 form.reset();
+                onCancel?.();
             },
             onError: (error: any) => {
                 const message = error instanceof Error ? error.message : "An unknown error occurred";
