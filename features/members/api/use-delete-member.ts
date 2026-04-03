@@ -16,6 +16,10 @@ export const useDeleteMember = () => {
       const response = await client.api.members[":memberId"]['$delete']({ param, query });
       if (!response.ok) {
         const errorBody = (await response.json().catch(() => null)) as { error?: string; message?: string } | null;
+        if (response.status === 403) {
+          throw new Error("You don't have permission to delete this member");
+        }
+
         throw new Error(errorBody?.error ?? errorBody?.message ?? "Failed to delete member");
       }
 
@@ -24,10 +28,6 @@ export const useDeleteMember = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["members", variables.query.workspaceId] });
       queryClient.invalidateQueries({ queryKey: ["members"] });
-    },
-    onError: (error) => {
-      console.error("Failed to delete member:", error);
     }
-
   });
 };
