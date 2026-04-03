@@ -11,37 +11,31 @@ export const getWorkspaces = async () => {
         return { workspaces: []};
     }
 
-    try {
-        // Fetch workspaces via membership
-        const members = await prisma.workspaceMember.findMany({
-            where: {
-                userId: session.userId,
-            },
-            select: {
-                workspace: {
-                    select: {
-                        id: true,
-                        name: true,
-                    },
+    // Fetch workspaces via membership
+    const members = await prisma.workspaceMember.findMany({
+        where: {
+            userId: session.userId,
+        },
+        select: {
+            workspace: {
+                select: {
+                    id: true,
+                    name: true,
                 },
             },
-            orderBy: {
-                workspace: {
-                    createdAt: "desc",
-                },
+        },
+        orderBy: {
+            workspace: {
+                createdAt: "desc",
             },
-        });
+        },
+    });
 
-        const workspaces = members.map((m) => m.workspace);
+    const workspaces = members.map((m) => m.workspace);
 
-        return {
-            workspaces,
-        };
-    } catch (error) {
-        console.error("[GET_WORKSPACES_ERROR]", error);
-
-        return { workspaces: [] };
-    }
+    return {
+        workspaces,
+    };
 };
 
 interface GetWorkspaceProps {
@@ -55,38 +49,33 @@ export const getWorkspace = async ({ workspaceId }: GetWorkspaceProps) => {
         return null;
     }
 
-    try {
-        const workspace = await prisma.workspace.findFirst({
-            where: {
-                id: workspaceId,
-                OR: [
-                    { ownerId: session.userId },
-                    { members: { some: { userId: session.userId } } },
-                ],
-            },
-            include: {
-                owner: {
-                    select: {
-                        id: true,
-                        fullName: true,
-                        email: true,
-                    },
-                },
-                members: {
-                    select: {
-                        id: true,
-                        userId: true,
-                        role: true,
-                    },
+    const workspace = await prisma.workspace.findFirst({
+        where: {
+            id: workspaceId,
+            OR: [
+                { ownerId: session.userId },
+                { members: { some: { userId: session.userId } } },
+            ],
+        },
+        include: {
+            owner: {
+                select: {
+                    id: true,
+                    fullName: true,
+                    email: true,
                 },
             },
-        });
+            members: {
+                select: {
+                    id: true,
+                    userId: true,
+                    role: true,
+                },
+            },
+        },
+    });
 
-        return workspace;
-    } catch (error) {
-        console.error("[GET_WORKSPACE_ERROR]", error);
-        return null;
-    }
+    return workspace;
 }
 
 interface GetWorkspaceInfoProps {
@@ -100,16 +89,11 @@ export const getWorkspaceInfo = async ({ workspaceId }: GetWorkspaceInfoProps) =
         return null;
     }
 
-    try {
-        const workspace = await prisma.workspace.findFirst({
-            where: {
-                id: workspaceId,
-            },
-        });
+    const workspace = await prisma.workspace.findFirst({
+        where: {
+            id: workspaceId,
+        },
+    });
 
-        return { name: workspace?.name };
-    } catch (error) {
-        console.error("[GET_WORKSPACE_INFO_ERROR]", error);
-        return null;
-    }
+    return { name: workspace?.name };
 };

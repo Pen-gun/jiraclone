@@ -12,27 +12,21 @@ export const getProject = async ({ projectId }: GetProjectProps) => {
         return null;
     }
 
-    try {
-        const project = await prisma.project.findFirst({
-            where: {
-                id: projectId,
-                workspace: {
-                    members: {
-                        some: {
-                            userId: session.userId,
-                        },
+    const project = await prisma.project.findFirst({
+        where: {
+            id: projectId,
+            workspace: {
+                members: {
+                    some: {
+                        userId: session.userId,
                     },
                 },
             },
-        });
-        if (!project) {
-            return null;
-        }
-
-        return project;
-
-    } catch (error) {
-        console.error("[GET_PROJECT_ERROR]", error);
+        },
+    });
+    if (!project) {
         return null;
     }
+
+    return project;
 };
