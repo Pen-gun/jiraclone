@@ -24,9 +24,6 @@ export const useUpdateMember = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["members", variables.query.workspaceId] });
       queryClient.invalidateQueries({ queryKey: ["members"] });
-    },
-    onError: (error) => {
-      console.error("Failed to update member:", error);
     }
   });
 };
