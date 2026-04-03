@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { RiAddCircleFill } from "react-icons/ri"
 import { cn } from "@/lib/utils";
+import { useCreateProjectModal } from "@/features/projects/hooks/use-create-project-modal";
 
 export const Projects = () => {
     const projectId = null // todo: get project id from url
@@ -13,6 +14,7 @@ export const Projects = () => {
     const workspaceId = useWorkspaceId();
     const pathname = usePathname();
     const { data: projects } = useGetProjects({ workspaceId });
+    const { openModal } = useCreateProjectModal();
 
     return (
         <div className="flex flex-col gap-y-2">
@@ -22,7 +24,7 @@ export const Projects = () => {
                 </p>
                 <RiAddCircleFill
                     className="size-5 text-neutral-500 cursor-pointer hover:opacity-75 transition"
-                    onClick={() => { }}
+                    onClick={openModal}
                 />
             </div>
 
@@ -35,8 +37,10 @@ export const Projects = () => {
                         key={project.id}
                         href={href}
                     >
-                        <div className={cn("px-2 py-1 rounded-md text-sm hover:bg-neutral-100 transition cursor-pointer", isActive && "bg-neutral-100")}>
-                            {project.name}
+                        <div className={cn(
+                            "flex items-center gap-2.5 p-2.5 rounded-md hover:opacity-75 transition cursor-pointer text-neutral-500", 
+                            isActive && "bg-white shadow-sm hover:opacity-100 text-primary")}>
+                            <span className="truncate">{project.name}</span>
                         </div>
                     </Link>
                 );
