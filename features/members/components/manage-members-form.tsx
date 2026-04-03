@@ -28,11 +28,14 @@ import { useDeleteMember } from "../api/use-delete-member";
 import { useGetMembers } from "../api/use-get-members";
 import { useUpdateMember } from "../api/use-update-method";
 import { MemberRole } from "../types";
+import { ArrowLeftIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 type MemberRoleValue = MemberRole;
 
 
 export const ManageMembersForm = ({ workspaceId }: { workspaceId: string }) => {
+    const router = useRouter();
     const { data, isLoading, isError, error } = useGetMembers({ workspaceId });
     const { mutate: updateMember, isPending: isUpdating } = useUpdateMember();
     const { mutate: deleteMember, isPending: isDeleting } = useDeleteMember();
@@ -106,7 +109,11 @@ export const ManageMembersForm = ({ workspaceId }: { workspaceId: string }) => {
         <div>
             <DeleteConfirmationDialog />
             <Card className="w-full h-full border-none shadow-none">
-                <CardHeader className="p-7">
+                <CardHeader className="flex p-7">
+                    <Button size='sm' variant='secondary' onClick={() => router.back()} className="mr-3 cursor-pointer">
+                        <ArrowLeftIcon className="size-4 mr-2" />
+                        Back
+                    </Button>
                     <CardTitle className="text-xl font-bold">Manage Members</CardTitle>
                 </CardHeader>
                 <div className="px-7">
