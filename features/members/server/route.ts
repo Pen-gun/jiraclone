@@ -104,7 +104,7 @@ const app = new Hono()
         '/:memberId',
         sessionMiddleware,
         zValidator('query', z.object({ workspaceId: z.string() })),
-        zValidator('json', z.object({ role: z.nativeEnum(MemberRole) })),
+        zValidator('json', z.object({ role: z.enum(MemberRole) })),
         async (c) => {
             const { memberId } = c.req.param();
             const { workspaceId } = c.req.valid('query');
