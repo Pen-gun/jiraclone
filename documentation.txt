@@ -1,6 +1,6 @@
 # Jira Clone - Current Project Documentation
 
-Last updated: 2026-03-31
+Last updated: 2026-04-03
 Status: In-progress prototype with working authentication + onboarding + workspace create/list/update + workspace member management flow
 
 ## 1) Project Overview
@@ -18,6 +18,7 @@ What this means right now:
 - The app has a working account and session system.
 - Workspace creation exists at API + UI component level.
 - Workspace member management exists at API + settings/member UI level.
+- Project list/create endpoints exist at API level.
 - Task and comment features are defined in database schema but not implemented in UI/API yet.
 
 ## 2) Tech Stack
@@ -113,6 +114,7 @@ This section explains the important folders as they exist now.
 	- `layout.tsx` renders sidebar + navbar.
 	- `page.tsx` does server-side redirect logic based on auth/workspaces.
 	- `workspaces/[workspaceId]/page.tsx` currently placeholder UI.
+	- `workspaces/[workspaceId]/projects/[projectId]/page.tsx` resolves project IDs from the route.
 
 - `app/(standalone)/`
 	- Standalone workspace routes:
@@ -143,6 +145,11 @@ This section explains the important folders as they exist now.
 	- `api/*`: React Query hooks.
 	- `components/*`: create/edit workspace forms + avatar.
 	- `hooks/use-workspace-id.ts`: route param helper.
+
+- `features/projects/`
+	- `server/route.ts`: project list/create endpoints.
+	- `api/*`: React Query hooks.
+	- `queries.ts`: server helper for project reads.
 
 - `features/members/`
 	- `server/route.ts`: list/update/delete member endpoints.
@@ -224,6 +231,14 @@ Implemented endpoints in `features/workspaces/server/route.ts`:
 	- Creates workspace.
 	- Generates invite code.
 	- Adds creator as `ADMIN` in `WorkspaceMember`.
+
+Implemented endpoints in `features/projects/server/route.ts`:
+
+- `GET /api/projects?workspaceId=...` (protected)
+	- Returns projects for the selected workspace if the current user is a member.
+
+- `POST /api/projects` (protected)
+	- Creates a project with `name`, `workspaceId`, and optional `description`.
 
 Client-side:
 - `CreateWorkspaceForm` submits workspace creation.

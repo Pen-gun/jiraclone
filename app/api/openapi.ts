@@ -27,6 +27,10 @@ export const openApiDocument = {
             name: 'Member Management',
             description: 'Workspace member listing and role management actions.',
         },
+        {
+            name: 'Project Management',
+            description: 'Project listing and creation actions.',
+        },
     ],
     servers: [
         {
@@ -371,6 +375,50 @@ export const openApiDocument = {
                     '401': { description: 'Unauthorized' },
                     '403': { description: 'Forbidden' },
                     '404': { description: 'Member not found' },
+                },
+            },
+        },
+        '/projects': {
+            get: {
+                tags: ['Project Management'],
+                summary: 'List workspace projects',
+                security: [{ cookieAuth: [] }],
+                parameters: [
+                    {
+                        name: 'workspaceId',
+                        in: 'query',
+                        required: true,
+                        schema: { type: 'string' },
+                    },
+                ],
+                responses: {
+                    '200': { description: 'Project list' },
+                    '401': { description: 'Unauthorized' },
+                },
+            },
+            post: {
+                tags: ['Project Management'],
+                summary: 'Create project',
+                security: [{ cookieAuth: [] }],
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/x-www-form-urlencoded': {
+                            schema: {
+                                type: 'object',
+                                required: ['name', 'workspaceId'],
+                                properties: {
+                                    name: { type: 'string' },
+                                    workspaceId: { type: 'string' },
+                                    description: { type: 'string' },
+                                },
+                            },
+                        },
+                    },
+                },
+                responses: {
+                    '201': { description: 'Project created' },
+                    '401': { description: 'Unauthorized' },
                 },
             },
         },
