@@ -1,14 +1,14 @@
 services:
-  app:
+  project-management:
     build: .
     ports:
       - "3000:3000"
     env_file:
       - .env
     depends_on:
-      - db
+      - database
 
-  db:
+  database:
     image: postgres:latest
     env_file:
       - .env
