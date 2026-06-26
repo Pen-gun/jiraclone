@@ -1,4 +1,4 @@
-From node:22-alpine AS base
+FROM node:22-alpine AS base
 RUN corepack enable && corepack prepare pnpm@11.9.0 --activate
 WORKDIR /app
 
@@ -8,8 +8,8 @@ RUN pnpm install --frozen-lockfile
 
 FROM base AS builder
 ARG NEXT_PUBLIC_API_URL
-
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ENV CI=true
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY prisma ./prisma
@@ -17,6 +17,7 @@ COPY . .
 
 RUN DATABASE_URL=postgresql://placeholder npx prisma generate
 RUN pnpm build
+RUN npx tsc prisma.config.ts --module commonjs --moduleResolution node --esModuleInterop --skipLibCheck --outDir .
 
 FROM base AS runner
 ENV NODE_ENV=production
@@ -24,11 +25,10 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/prisma.config.js ./        # compiled from .ts in builder
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/prisma.config.js ./
+COPY --from=builder /app/generated/prisma ./generated/prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
-COPY --from=builder /app/dist/scripts ./scripts
 COPY entrypoint.sh ./
 RUN chmod +x entrypoint.sh
 EXPOSE 3000
