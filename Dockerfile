@@ -24,8 +24,12 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/prisma.config.ts ./
-RUN npm install -g prisma@7.8.0
+COPY --from=builder /app/prisma.config.js ./        # compiled from .ts in builder
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
 COPY --from=builder /app/dist/scripts ./scripts
+COPY entrypoint.sh ./
+RUN chmod +x entrypoint.sh
 EXPOSE 3000
-CMD ["node", "server.js"]
+CMD ["./entrypoint.sh"]
