@@ -1,4 +1,4 @@
-# Jira Clone
+# Project management system inspired by jira
 
 A Jira-inspired project management app built with Next.js App Router, TypeScript, Hono, Prisma, and a shadcn-style component system.
 
