@@ -186,3 +186,8 @@ npm run lint
 - Add integration tests for auth endpoints
 - Add end-to-end auth happy-path test
 - Add CI lint/typecheck gates
+
+4. make it public
+- Deploy it so it can be accessed publicly
+- then automate through github action
+- ci/cd fully
