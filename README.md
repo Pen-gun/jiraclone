@@ -191,3 +191,24 @@ npm run lint
 - Deploy it so it can be accessed publicly
 - then automate through github action
 - ci/cd fully
+
+## Deployment & Infrastructure
+
+### Containerization
+- Multi-stage Dockerfile (4 stages: deps, dev, build, runner)
+- Final image based on node:alpine — significantly smaller than single-stage
+- Custom entrypoint script for environment-aware startup
+
+### Docker Compose
+- Defines app + PostgreSQL services
+- Custom bridge network for service-to-service communication
+- Environment-specific profiles (dev/prod)
+
+### Deployment
+- Image built, tagged, and pushed to GitHub Container Registry (GHCR)
+- Pulled and deployed on Ubuntu home lab server
+- Exposed publicly via Cloudflare reverse proxy
+
+### Next (in progress)
+- GitHub Actions CI/CD pipeline to automate build → push → deploy on every push to main
+- Integration tests before deployment gate
