@@ -192,23 +192,85 @@ npm run lint
 - then automate through github action
 - ci/cd fully
 
-## Deployment & Infrastructure
+## Deployment & DevOps
 
-### Containerization
-- Multi-stage Dockerfile (4 stages: deps, dev, build, runner)
-- Final image based on node:alpine — significantly smaller than single-stage
-- Custom entrypoint script for environment-aware startup
+This project is container-first and designed to be automated from source -> image -> registry -> host. Below are recommended and implemented DevOps practices for building, testing, publishing, and deploying the application.
 
-### Docker Compose
-- Defines app + PostgreSQL services
-- Custom bridge network for service-to-service communication
-- Environment-specific profiles (dev/prod)
+### Container images
+- Multi-stage Dockerfile (stages: deps, dev, build, runner) to keep final images small and reproducible.
+- Final runtime image targets a lightweight Node base (alpine variant) and runs via a custom `entrypoint.sh` that injects environment-aware configuration.
+- Build artifacts (Prisma client, Next.js build output) are produced in the `build` stage and copied to the runner stage.
 
-### Deployment
-- Image built, tagged, and pushed to GitHub Container Registry (GHCR)
-- Pulled and deployed on Ubuntu home lab server
-- Exposed publicly via Cloudflare reverse proxy
+### Local orchestration (Docker Compose)
+- `docker-compose.yml` defines `app` and `postgres` services for local development and CI smoke tests.
+- Uses a custom bridge network so services resolve consistently by service name.
+- Profiles and `.env` files allow toggling development vs. production behavior (volumes, hot-reload, minimized services).
+
+### CI/CD (GitHub Actions)
+- Workflows live under `.github/workflows/` and are responsible for:
+  - Installing dependencies and running lint/type checks.
+  - Running unit/integration tests (if present).
+  - Building multi-stage Docker image and tagging with commit SHA and semantic tags (when applicable).
+  - Pushing images to GitHub Container Registry (GHCR) or other registries.
+  - Optionally deploying to targets (ssh + docker-compose, Kubernetes, or other orchestrators).
+- Recommended workflow steps and best practices:
+  - Cache node_modules and Docker build layers for faster runs.
+  - Run `npx prisma generate` and include Prisma artifacts in the build context.
+  - Gate deployments with an integration test job or required approvals on protected branches.
+  - Add `depends-on` style jobs to ensure build → test → publish → deploy ordering.
+
+### Registry & image tagging
+- Push images to GHCR as `ghcr.io/<org>/<repo>:<sha>` and `ghcr.io/<org>/<repo>:latest` or semantic tags.
+- Keep immutable tags (SHA) for traceability and use lightweight tags for convenience.
+
+### Secrets & environment variables
+- Store secrets in GitHub Actions Secrets (or a vault):
+  - `GHCR_TOKEN` / `CR_PAT` — push access to the image registry.
+  - `SSH_PRIVATE_KEY`, `SERVER_USER`, `SERVER_HOST` — for ssh-based deploys.
+  - `DATABASE_URL`, `NEXT_PUBLIC_API_URL`, and any other runtime config for the target environment.
+- Use environment-specific secrets (e.g., `DATABASE_URL_PROD`) and inject them at deploy-time rather than hard-coding.
+
+### Database migrations in CI/CD
+- Run migrations as a separate deploy step using `npx prisma migrate deploy` (preferred for non-interactive deploys).
+- For blue/green or rolling deploys, consider using a dedicated migration job that runs before container replacement.
+
+### Deployment targets (examples)
+- SSH + Docker Compose (simple, home lab):
+  - Push image to GHCR.
+  - SSH to host and `docker-compose pull && docker-compose up -d`.
+  - Run `npx prisma migrate deploy` on the host if needed.
+- Kubernetes: use `kubectl` or a GitOps approach (ArgoCD/Flux) to update image tags and rollout.
+- Cloud services: adapt workflow to provider (ECS, GCP Cloud Run, Azure App Service) and use provider-specific deployment actions.
+
+### Healthchecks, monitoring & alerts
+- Expose a simple `/health` endpoint for liveness/readiness checks.
+- Add monitoring and alerting (Prometheus + Grafana, or third-party like Datadog) for uptime, response time, and error rates.
+- Use log aggregation (e.g., Loki/ELK) or provider logs to centralize server-side errors.
+
+### Rollback & safe deployments
+- Keep image tags immutable and deploy by tag to enable quick rollback to a known-good SHA.
+- For `docker-compose` deployments, keep a short downtime by pulling the previous image and restarting the service.
+- In Kubernetes, use `kubectl rollout undo` to revert a deployment.
+
+### CI checks and quality gates
+- Run `npm run lint` and TypeScript typechecks in CI on every PR.
+- Add tests to gate merges: unit tests, integration tests, and a small end-to-end smoke test that runs in a disposable container environment.
+
+### Recommended GitHub Actions secrets (minimum)
+- `GHCR_TOKEN` — push/pull permissions for GitHub Container Registry.
+- `SSH_PRIVATE_KEY`, `SERVER_USER`, `SERVER_HOST` — for ssh deploy jobs.
+- `PROD_DATABASE_URL` — used only by the production deploy job and never printed.
+- `NEXTAUTH_SECRET` or similar tokens used by auth/session logic.
+
+### Quick deploy checklist
+1. Push code and open PR (CI runs lint/type/tests).
+2. Merge to `main` (CI builds image and pushes to registry).
+3. Deploy job runs (or manual deploy) which:
+   - pulls image on target host,
+   - runs `npx prisma migrate deploy` (if migration needed),
+   - restarts services.
+4. Verify `/health` and smoke endpoints.
 
 ### Next (in progress)
-- GitHub Actions CI/CD pipeline to automate build → push → deploy on every push to main
-- Integration tests before deployment gate
+- Fully automating build → push → deploy on every push to `main` with required integration test gates.
+- Integration tests before deployment gate.
