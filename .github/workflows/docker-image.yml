@@ -13,6 +13,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+    - uses: actions/checkout@v3
+      name: Check out code
+
+    - uses: mr-smithers-excellent/docker-build-push@v7
+      name: Build & push Docker image
+      with:
+        image: ghcr.io/${{ github.repository }}
+        tags: version1.0
+        registry: ghcr.io
+        dockerfile: ./Dockerfile
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
