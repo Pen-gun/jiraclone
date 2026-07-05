@@ -265,12 +265,11 @@ This project is container-first and designed to be automated from source -> imag
 ### Quick deploy checklist
 1. Push code and open PR (CI runs lint/type/tests).
 2. Merge to `main` (CI builds image and pushes to registry).
-3. Deploy job runs (or manual deploy) which:
+3. Deploy job runs automatically which:
    - pulls image on target host,
    - runs `npx prisma migrate deploy` (if migration needed),
    - restarts services.
 4. Verify `/health` and smoke endpoints.
 
 ### Next (in progress)
-- Fully automating build → push → deploy on every push to `main` with required integration test gates.
 - Integration tests before deployment gate.
