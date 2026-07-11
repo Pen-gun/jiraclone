@@ -273,3 +273,4 @@ This project is container-first and designed to be automated from source -> imag
 
 ### Next (in progress)
 - Integration tests before deployment gate.
+- Full ci/cd with tests
