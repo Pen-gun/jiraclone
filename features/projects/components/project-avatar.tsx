@@ -1,8 +1,18 @@
-export const ProjectAvatar = ({ name }: { name: string }) => {
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
-    return (
-        <div className="size-6 shrink-0 rounded-full flex items-center justify-center overflow-hidden text-white text-[10px] font-semibold bg-blue-500 ring-1 ring-blue-700/20">
-            {name[0].toUpperCase()}
-        </div>
-    );
+export const ProjectAvatar = ({
+  name,
+  imageUrl
+}: {
+  name: string;
+  imageUrl?: string | null;
+}) => {
+  return (
+    <Avatar size="sm">
+      {imageUrl && <AvatarImage src={imageUrl} alt={name} />}
+      <AvatarFallback className="bg-blue-500 text-white text-[10px] font-semibold ring-1 ring-blue-700/20">
+        {name[0].toUpperCase()}
+      </AvatarFallback>
+    </Avatar>
+  );
 }
