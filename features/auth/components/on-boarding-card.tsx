@@ -70,8 +70,8 @@ export const OnBoardingCard = () => {
                     <div className="flex justify-center mb-6">
                         <ImageUpload
                             type="profile"
-                            currentImageUrl={currentUser?.user?.profileImageUrl}
-                            entityId={currentUser?.user?.id}
+                            currentImageUrl={currentUser?.profileImageUrl}
+                            entityId={currentUser?.id}
                             size="lg"
                             shape="circle"
                         />
