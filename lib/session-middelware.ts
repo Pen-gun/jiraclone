@@ -11,6 +11,8 @@ type user = {
   age: number | null;
   bio: string | null;
   onBoardingCompleted: boolean;
+  profileImageUrl: string | null;
+  profileImageKey: string | null;
 };
 
 
@@ -31,6 +33,8 @@ export const sessionMiddleware = createMiddleware<{ Variables: {user: user} }>(a
                     age: true,
                     bio: true,
                     onBoardingCompleted: true,
+                    profileImageUrl: true,
+                    profileImageKey: true,
                 },
             },
         },

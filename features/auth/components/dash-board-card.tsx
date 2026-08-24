@@ -1,6 +1,6 @@
 "use client";
 import { useEffect } from "react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -31,12 +31,13 @@ export const DashboardCard = () => {
 		return <Spinner />;
 	}
 
-	const { fullName, email } = user || {};
+	const { fullName, email, profileImageUrl } = user || {};
 	const avatarFallback = fullName ? fullName.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase() || <AvatarFallback />;
 	return (
 		<DropdownMenu modal={false}>
 			<DropdownMenuTrigger>
 				<Avatar className="size-10 hover:opacity-75 transition border border-neutral-50">
+					{profileImageUrl && <AvatarImage src={profileImageUrl} alt={fullName || email || "User"} />}
 					<AvatarFallback className="bg-neutral-200 font-medium text-neutral-500 flex items-center justify-center">
 						{avatarFallback}
 					</AvatarFallback>
@@ -45,6 +46,7 @@ export const DashboardCard = () => {
 			<DropdownMenuContent align="end" side="bottom" className="w-60" sideOffset={10}>
 				<div className="flex flex-col items-center justify-center gap-2 px-2.5 py-4">
 					<Avatar className="size-13 border border-neutral-50">
+						{profileImageUrl && <AvatarImage src={profileImageUrl} alt={fullName || email || "User"} />}
 						<AvatarFallback className="bg-neutral-200 text-xl font-medium text-neutral-500 flex items-center justify-center">
 							{avatarFallback}
 						</AvatarFallback>

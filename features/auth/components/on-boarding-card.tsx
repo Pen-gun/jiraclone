@@ -23,11 +23,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { onBoardingFormSchema } from "@/features/auth/schemas";
 import { useOnboarding } from "@/features/auth/api/use-onboarding";
 import { useRouter } from "next/navigation";
+import { ImageUpload } from "@/features/uploads";
+import { useCurrent } from "../api/use-current";
 
 
 export const OnBoardingCard = () => {
     const router = useRouter();
     const { mutate, isPending } = useOnboarding();
+    const { data: currentUser } = useCurrent();
 
     const form = useForm<z.infer<typeof onBoardingFormSchema>>({
         resolver: zodResolver(onBoardingFormSchema),
@@ -64,6 +67,15 @@ export const OnBoardingCard = () => {
             </div>
             <CardContent className="p-7">
                 <form noValidate className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
+                    <div className="flex justify-center mb-6">
+                        <ImageUpload
+                            type="profile"
+                            currentImageUrl={currentUser?.profileImageUrl}
+                            entityId={currentUser?.id}
+                            size="lg"
+                            shape="circle"
+                        />
+                    </div>
                     <FieldGroup>
                         <Controller
                             name="fullName"
