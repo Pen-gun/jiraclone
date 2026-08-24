@@ -5,6 +5,7 @@ import auth from '@/features/auth/server/route'
 import members from '@/features/members/server/route'
 import workspace from '@/features/workspaces/server/route'
 import projects from '@/features/projects/server/route'
+import uploads from '@/features/uploads/server/route'
 import { registerOpenApiDocs } from '../openapi'
 
 const app = new Hono().basePath('/api')
@@ -15,6 +16,7 @@ const routes = app
     .route('/members', members)
     .route('/workspaces', workspace)
     .route('/projects', projects)
+    .route('/uploads', uploads)
 export type AppType = typeof routes;
 
 export const GET = handle(app)

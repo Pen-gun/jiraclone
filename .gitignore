@@ -33,6 +33,11 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# AWS Lambda
+/lambda/*/node_modules/
+/lambda/**/function.zip
+/lambda/**/.aws-sam/
+
 # vercel
 .vercel
 

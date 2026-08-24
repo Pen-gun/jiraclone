@@ -19,6 +19,8 @@ model User {
   age                 Int?
   bio                 String?
   onBoardingCompleted Boolean      @default(false)
+  profileImageUrl     String?
+  profileImageKey     String?
 
   tasks      Task[]     @relation("TaskAssignee")
   projects   Project[]  @relation("ProjectOwner")
@@ -59,6 +61,8 @@ model Project {
   ownerId     String
   workspaceId String
   createdAt   DateTime @default(now())
+  imageUrl    String?
+  imageKey    String?
 
   owner     User      @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
