@@ -1,276 +1,424 @@
-# Project management system inspired by jira
+# Project Management System (Jira Clone)
 
-A Jira-inspired project management app built with Next.js App Router, TypeScript, Hono, Prisma, and a shadcn-style component system.
+A modern, full-stack project management application inspired by Jira, built with Next.js, TypeScript, and AWS.
 
-Current milestone: authentication, onboarding, and first workspace creation flow with database-backed sessions.
+## 🚀 Features
 
-## Stack
+### ✅ Core Functionality
+- **Authentication & Authorization** - Secure session-based auth with cookie management
+- **User Onboarding** - Complete profile setup with image uploads
+- **Workspace Management** - Create, manage, and invite members to workspaces
+- **Project Management** - Full CRUD operations for projects with cover images
+- **Task Management** - Create, assign, and track tasks across projects
+- **Member Management** - Role-based access control (Admin/Member)
+- **Profile Pictures** - AWS S3 integration for user avatars and project images
 
-- Next.js 16 (App Router)
-- React 19
-- TypeScript
-- Tailwind CSS v4
-- Hono for API routes
-- Prisma + PostgreSQL
-- TanStack React Query
-- React Hook Form + Zod
-- shadcn UI primitives
+### 🔧 Technical Features
+- **Health Checks** - `/api/health`, `/api/ready`, `/api/live` endpoints for monitoring
+- **API Documentation** - Auto-generated OpenAPI/Swagger docs at `/api/docs`
+- **CI/CD Pipeline** - Automated deployment with health check validation
+- **Docker Support** - Multi-stage builds with health checks
+- **Database Migrations** - Automated with Prisma
 
-## Current Features
+---
 
-- Sign in, sign up, onboarding, and root dashboard experience
-- Auth API endpoints under `/api/auth`
-- Workspace create/list endpoints under `/api/workspaces` (stored in `Workspace` + `WorkspaceMember` models)
-- Workspace invite flow (`join` + `reset-invite-code`) under `/api/workspaces`
-- Workspace member list/update/remove endpoints under `/api/members`
-- Session table with cookie-based auth token (`auth_token`)
-- Server-side auth gate on the home page
-- Client-side current-user fetch via React Query
-- Logout endpoint that clears session record and cookie
-- OpenAPI spec and Swagger UI available at `/api/openapi.json` and `/api/docs`
-- Prisma domain models for `Workspace`, `Project`, `Task`, and `Comment`
+## 📦 Tech Stack
 
-## Repository Layout
+### Frontend
+- **Next.js 16** - React framework with App Router
+- **React 19** - Latest React with Server Components
+- **TypeScript** - Type-safe development
+- **Tailwind CSS v4** - Utility-first styling
+- **shadcn/ui** - Beautiful component library
+- **TanStack Query** - Server state management
+- **React Hook Form + Zod** - Form validation
 
-```text
-app/
-  (auth)/
-    layout.tsx
-    onboarding/page.tsx
-    sign-in/page.tsx
-    sign-up/page.tsx
-  (dashboard)/
-    layout.tsx
-    loading.tsx
-    page.tsx
-    workspaces/[workspaceId]/page.tsx
-  api/[...route]/route.ts
-  layout.tsx
+### Backend
+- **Hono** - Fast, lightweight API framework
+- **Prisma** - Type-safe ORM
+- **PostgreSQL** - Relational database
+- **AWS S3** - Object storage for images
 
-features/
-  action.ts
-  schemas.ts
-  auth/
-    api/
-      use-current.ts
-      use-login.ts
-      use-logout.tsx
-      use-onboarding.ts
-      use-register.ts
-    components/
-    constant.ts
-    server/route.ts
-  workspaces/
-    api/use-create-workspace.ts
-    components/create-workspace-form.tsx
-    schemas.ts
-    server/route.ts
-  members/
-    api/
-      use-delete-member.ts
-      use-get-members.ts
-      use-update-method.ts
-    components/manage-members-form.tsx
-    server/route.ts
+### DevOps
+- **Docker** - Containerization
+- **GitHub Actions** - CI/CD automation
+- **Tailscale** - Secure deployment tunnel
 
-lib/
-  prismaHelper.ts
-  rcp.ts
-  session-middelware.ts
+---
 
-prisma/
-  schema.prisma
-  migrations/
+## 🏗️ Project Structure
+
+```
+project-management-inspired-by-jira/
+├── app/                          # Next.js App Router
+│   ├── (auth)/                   # Auth pages (sign-in, sign-up, onboarding)
+│   ├── (dashboard)/              # Main app pages
+│   ├── (standalone)/             # Standalone pages (workspace create, join)
+│   └── api/                      # API routes
+│       ├── [...route]/           # Hono API routes
+│       ├── health/               # Health check endpoint
+│       ├── ready/                # Readiness probe
+│       ├── live/                 # Liveness probe
+│       └── images/               # Image proxy for S3
+│
+├── features/                     # Feature modules
+│   ├── auth/                     # Authentication
+│   ├── workspaces/               # Workspace management
+│   ├── projects/                 # Project management
+│   ├── members/                  # Member management
+│   └── uploads/                  # Image upload (S3)
+│       ├── api/                  # React Query hooks
+│       ├── components/           # Upload components
+│       ├── server/               # API routes
+│       └── schemas.ts            # Zod schemas
+│
+├── components/                   # Shared components
+│   ├── ui/                       # shadcn components
+│   └── user-avatar.tsx           # User avatar component
+│
+├── lib/                          # Utilities
+│   ├── prismaHelper.ts           # Prisma client
+│   ├── session-middelware.ts     # Auth middleware
+│   ├── s3.ts                     # AWS S3 utilities
+│   └── utils.ts                  # Shared utilities
+│
+├── prisma/                       # Database
+│   ├── schema.prisma             # Database schema
+│   └── migrations/               # Migration history
+│
+├── lambda/                       # AWS Lambda
+│   └── image-processor/          # Image processing function
+│
+├── .github/workflows/            # CI/CD
+│   └── docker-image.yml          # Build & deploy pipeline
+│
+├── docker-compose.yml            # Local development
+├── Dockerfile                    # Production image
+└── AWS_INTEGRATION.md            # AWS setup guide
 ```
 
-## Getting Started
+---
 
-1. Install dependencies
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js 20+
+- Docker & Docker Compose
+- AWS Account (for image uploads)
+
+### 1. Clone & Install
 
 ```bash
+git clone <repository-url>
+cd project-management-inspired-by-jira
 npm install
 ```
 
-2. Configure environment variables
+### 2. Environment Setup
 
-Create `.env` and `.env.local` for local development.
+Create `.env` file:
 
-Typical values:
-
-```bash
-DATABASE_URL="postgresql://..."
+```env
+# Database (for local development)
+DATABASE_URL="postgresql://notpenguin:13717893@localhost:5432/project_management?schema=public"
 NEXT_PUBLIC_API_URL="http://localhost:3000"
-NODE_ENV="development"
+
+# Docker variables
+POSTGRES_USER=notpenguin
+POSTGRES_PASSWORD=13717893
+POSTGRES_DB=project_management
+
+# AWS Configuration (for image uploads)
+AWS_REGION=ap-south-1
+AWS_ACCESS_KEY_ID=your_access_key_here
+AWS_SECRET_ACCESS_KEY=your_secret_key_here
+AWS_S3_BUCKET_NAME=jiraclone-uploads
 ```
 
-3. Generate Prisma client and run migrations
+See `AWS_INTEGRATION.md` for AWS setup instructions.
+
+### 3. Start Database
 
 ```bash
-npx prisma generate
+docker compose up -d database
+```
+
+### 4. Run Migrations
+
+```bash
 npx prisma migrate dev
+npx prisma generate
 ```
 
-4. Start development server
+### 5. Start Development Server
 
 ```bash
 npm run dev
 ```
 
-Open http://localhost:3000.
+Open [http://localhost:3000](http://localhost:3000)
 
-## Scripts
+---
 
-```bash
-npm run dev
-npm run build
-npm run start
-npm run lint
+## 📚 API Documentation
+
+### Health Check Endpoints
+
+| Endpoint | Purpose | Response |
+|----------|---------|----------|
+| `GET /api/health` | Full health check with DB & AWS status | `200` if healthy, `503` if unhealthy |
+| `GET /api/ready` | Readiness probe (DB connectivity) | `200` if ready, `503` if not ready |
+| `GET /api/live` | Liveness probe (process running) | Always `200` |
+
+Example response from `/api/health`:
+```json
+{
+  "status": "healthy",
+  "timestamp": "2026-08-24T20:59:33.002Z",
+  "uptime": 243.54,
+  "services": {
+    "database": "connected",
+    "aws": "configured"
+  },
+  "version": "0.1.0"
+}
 ```
 
-## API Documentation
+### OpenAPI Documentation
 
-- OpenAPI JSON: `/api/openapi.json`
-- Swagger UI: `/api/docs`
+- **Swagger UI**: [http://localhost:3000/api/docs](http://localhost:3000/api/docs)
+- **OpenAPI JSON**: [http://localhost:3000/api/openapi.json](http://localhost:3000/api/openapi.json)
 
-## Auth Architecture
+### Main API Routes
 
-1. Login and register create a `Session` row and set `auth_token` cookie.
-2. Hono `sessionMiddleware` reads the cookie and resolves the current user.
-3. `GET /api/auth/me` uses the middleware for client-side user fetch.
-4. `features/action.ts` performs server-side user resolution directly through Prisma for page gating.
-5. Logout deletes the session record and clears the cookie.
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/login` - User login
+- `GET /api/auth/me` - Get current user
+- `POST /api/auth/logout` - Logout
+- `POST /api/workspaces` - Create workspace
+- `GET /api/workspaces` - List workspaces
+- `POST /api/projects` - Create project
+- `GET /api/members` - List workspace members
+- `POST /api/uploads/presigned-url` - Get upload URL
+- `POST /api/uploads/confirm` - Confirm upload
 
-## Workspace Flow (Current)
+---
 
-1. `CreateWorkspaceForm` validates input with Zod.
-2. `useCreateWorkspace` posts to `/api/workspaces`.
-3. Hono route validates payload and requires `sessionMiddleware`.
-4. Route creates a `Workspace` row and a `WorkspaceMember` row with `ADMIN` role for the creator.
-5. On success, form resets and `workspaces` query key is invalidated.
+## 🐳 Docker Deployment
 
-## Workspace Invite Flow (Current)
+### Development
 
-1. Workspace admin can reset invite code via `POST /api/workspaces/:workspaceId/reset-invite-code`.
-2. Invite links use `/workspaces/:workspaceId/join/:invitecode`.
-3. Join flow posts `inviteCode` to `POST /api/workspaces/:workspaceId/join`.
-4. Route validates code, prevents duplicate membership, then creates a `WorkspaceMember` row with `MEMBER` role.
+```bash
+docker compose up -d
+```
 
-## Member Management Flow (Current)
+### Production Build
 
-1. Workspace members page renders `ManageMembersForm`.
-2. `useGetMembers` fetches members for `workspaceId` from `GET /api/members`.
-3. `useUpdateMember` updates role through `PATCH /api/members/:memberId` with `workspaceId` query.
-4. `useDeleteMember` removes non-admin members through `DELETE /api/members/:memberId` with `workspaceId` query.
+```bash
+docker compose up -d --build
+```
 
-## Known Gaps
+### Health Checks
 
-- Passwords are still stored and compared in plain text.
-- Tests are not implemented yet.
-- Workspace and Project both exist in Prisma; Project CRUD/UI is still pending.
-- Localhost login issues can occur if cookie security flags are not environment-aware.
-- Home redirects to `/workspaces/create` when no workspaces exist, but that page route is not implemented yet.
+The app includes Docker health checks:
+- Application: `curl -f http://localhost:3000/api/health`
+- Database: `pg_isready`
 
-## Next Milestones
+---
 
-1. Security hardening
-- Add password hashing (bcrypt or argon2)
-- Move cookie security flags to environment-aware defaults
-- Add session rotation and revoke-all support
+## 🔄 CI/CD Pipeline
 
-2. Product foundation
-- Keep Workspace and Project naming consistent across Prisma and UI
-- Add list/read/update/delete APIs for projects and tasks
-- Build first board/list UI for tasks
+The project uses GitHub Actions for automated deployment:
 
-3. Quality pass
-- Add integration tests for auth endpoints
-- Add end-to-end auth happy-path test
-- Add CI lint/typecheck gates
+1. **CI (Continuous Integration)**
+   - Build Docker image
+   - Push to GitHub Container Registry
 
-4. make it public
-- Deploy it so it can be accessed publicly
-- then automate through github action
-- ci/cd fully
+2. **CD (Continuous Deployment)**
+   - Deploy via SSH over Tailscale
+   - Pull latest image
+   - Restart containers
+   - Run health checks (with retries)
+   - Validate readiness
 
-## Deployment & DevOps
+### Deployment Flow
 
-This project is container-first and designed to be automated from source -> image -> registry -> host. Below are recommended and implemented DevOps practices for building, testing, publishing, and deploying the application.
+```
+Push to master → Build Image → Push to GHCR → Deploy to Server → Health Check → ✅
+```
 
-### Container images
-- Multi-stage Dockerfile (stages: deps, dev, build, runner) to keep final images small and reproducible.
-- Final runtime image targets a lightweight Node base (alpine variant) and runs via a custom `entrypoint.sh` that injects environment-aware configuration.
-- Build artifacts (Prisma client, Next.js build output) are produced in the `build` stage and copied to the runner stage.
+See `.github/workflows/docker-image.yml` for details.
 
-### Local orchestration (Docker Compose)
-- `docker-compose.yml` defines `app` and `postgres` services for local development and CI smoke tests.
-- Uses a custom bridge network so services resolve consistently by service name.
-- Profiles and `.env` files allow toggling development vs. production behavior (volumes, hot-reload, minimized services).
+---
 
-### CI/CD (GitHub Actions)
-- Workflows live under `.github/workflows/` and are responsible for:
-  - Installing dependencies and running lint/type checks.
-  - Running unit/integration tests (if present).
-  - Building multi-stage Docker image and tagging with commit SHA and semantic tags (when applicable).
-  - Pushing images to GitHub Container Registry (GHCR) or other registries.
-  - Optionally deploying to targets (ssh + docker-compose, Kubernetes, or other orchestrators).
-- Recommended workflow steps and best practices:
-  - Cache node_modules and Docker build layers for faster runs.
-  - Run `npx prisma generate` and include Prisma artifacts in the build context.
-  - Gate deployments with an integration test job or required approvals on protected branches.
-  - Add `depends-on` style jobs to ensure build → test → publish → deploy ordering.
+## 🖼️ AWS S3 Integration
 
-### Registry & image tagging
-- Push images to GHCR as `ghcr.io/<org>/<repo>:<sha>` and `ghcr.io/<org>/<repo>:latest` or semantic tags.
-- Keep immutable tags (SHA) for traceability and use lightweight tags for convenience.
+### Setup
 
-### Secrets & environment variables
-- Store secrets in GitHub Actions Secrets (or a vault):
-  - `GHCR_TOKEN` / `CR_PAT` — push access to the image registry.
-  - `SSH_PRIVATE_KEY`, `SERVER_USER`, `SERVER_HOST` — for ssh-based deploys.
-  - `DATABASE_URL`, `NEXT_PUBLIC_API_URL`, and any other runtime config for the target environment.
-- Use environment-specific secrets (e.g., `DATABASE_URL_PROD`) and inject them at deploy-time rather than hard-coding.
+1. Create S3 bucket
+2. Create IAM user with S3 permissions
+3. Enable ACLs on bucket (Object Ownership → ACLs enabled)
+4. Update `.env` with credentials
 
-### Database migrations in CI/CD
-- Run migrations as a separate deploy step using `npx prisma migrate deploy` (preferred for non-interactive deploys).
-- For blue/green or rolling deploys, consider using a dedicated migration job that runs before container replacement.
+See **[AWS_INTEGRATION.md](./AWS_INTEGRATION.md)** for complete setup guide.
 
-### Deployment targets (examples)
-- SSH + Docker Compose (simple, home lab):
-  - Push image to GHCR.
-  - SSH to host and `docker-compose pull && docker-compose up -d`.
-  - Run `npx prisma migrate deploy` on the host if needed.
-- Kubernetes: use `kubectl` or a GitOps approach (ArgoCD/Flux) to update image tags and rollout.
-- Cloud services: adapt workflow to provider (ECS, GCP Cloud Run, Azure App Service) and use provider-specific deployment actions.
+### Features
 
-### Healthchecks, monitoring & alerts
-- Expose a simple `/health` endpoint for liveness/readiness checks.
-- Add monitoring and alerting (Prometheus + Grafana, or third-party like Datadog) for uptime, response time, and error rates.
-- Use log aggregation (e.g., Loki/ELK) or provider logs to centralize server-side errors.
+- **Profile Pictures** - User avatars with fallback to initials
+- **Project Images** - Cover images for projects
+- **Secure Upload** - Presigned URLs (15min expiry)
+- **Automatic Cleanup** - Old images deleted on update
+- **Image Proxy** - `/api/images/...` endpoint for access control
 
-### Rollback & safe deployments
-- Keep image tags immutable and deploy by tag to enable quick rollback to a known-good SHA.
-- For `docker-compose` deployments, keep a short downtime by pulling the previous image and restarting the service.
-- In Kubernetes, use `kubectl rollout undo` to revert a deployment.
+### Optional: Lambda Image Processing
 
-### CI checks and quality gates
-- Run `npm run lint` and TypeScript typechecks in CI on every PR.
-- Add tests to gate merges: unit tests, integration tests, and a small end-to-end smoke test that runs in a disposable container environment.
+Deploy Lambda function for automatic:
+- Thumbnail generation (200x200)
+- Image optimization (max 1024px)
 
-### Recommended GitHub Actions secrets (minimum)
-- `GHCR_TOKEN` — push/pull permissions for GitHub Container Registry.
-- `SSH_PRIVATE_KEY`, `SERVER_USER`, `SERVER_HOST` — for ssh deploy jobs.
-- `PROD_DATABASE_URL` — used only by the production deploy job and never printed.
-- `NEXTAUTH_SECRET` or similar tokens used by auth/session logic.
+See `lambda/image-processor/` directory.
 
-### Quick deploy checklist
-1. Push code and open PR (CI runs lint/type/tests).
-2. Merge to `main` (CI builds image and pushes to registry).
-3. Deploy job runs automatically which:
-   - pulls image on target host,
-   - runs `npx prisma migrate deploy` (if migration needed),
-   - restarts services.
-4. Verify `/health` and smoke endpoints.
+---
 
-### Next (in progress)
-- Integration tests before deployment gate.
-- Full ci/cd with tests
+## 📊 Database Schema
+
+### Key Models
+
+- **User** - Authentication, profile, images
+- **Workspace** - Team spaces with invite codes
+- **WorkspaceMember** - Role-based membership (Admin/Member)
+- **Project** - Projects with cover images
+- **Task** - Tasks with assignees
+- **Comment** - Task comments
+- **Session** - Cookie-based sessions
+
+See `prisma/schema.prisma` for complete schema.
+
+---
+
+## 🧪 Testing
+
+### Health Check Test
+
+```bash
+curl http://localhost:3000/api/health
+curl http://localhost:3000/api/ready
+curl http://localhost:3000/api/live
+```
+
+### Manual Testing
+
+1. Sign up at `/sign-up`
+2. Complete onboarding at `/onboarding`
+3. Upload profile picture
+4. Create workspace at `/workspaces/create`
+5. Invite members
+6. Create projects and tasks
+
+---
+
+## 🔐 Authentication
+
+### Architecture
+
+1. **Register/Login** → Creates `Session` record → Sets `auth_token` cookie
+2. **Session Middleware** → Reads cookie → Resolves user from DB
+3. **Protected Routes** → Require valid session
+4. **Logout** → Deletes session → Clears cookie
+
+### Session Management
+
+- Cookie-based sessions
+- Server-side session validation
+- Automatic session cleanup
+- 7-day expiry
+
+---
+
+## 📝 Scripts
+
+```bash
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run start        # Start production server
+npm run lint         # Run ESLint
+npx prisma studio    # Open Prisma Studio (DB GUI)
+npx prisma migrate dev  # Run migrations
+```
+
+---
+
+## 🚧 Known Limitations
+
+- **Password Security** - Using bcrypt, but consider Argon2 for production
+- **Image Storage** - S3 bucket must allow ACLs for public read
+- **Session Rotation** - Not yet implemented
+- **Rate Limiting** - Not yet implemented
+- **Tests** - Integration tests pending
+
+---
+
+## 🗺️ Roadmap
+
+### Phase 1: Foundation ✅
+- [x] Authentication & sessions
+- [x] Workspace management
+- [x] Project CRUD
+- [x] Member management
+- [x] AWS S3 integration
+- [x] Health checks
+- [x] CI/CD pipeline
+
+### Phase 2: Enhancement 🚧
+- [ ] Task board UI (Kanban)
+- [ ] Real-time updates (WebSockets)
+- [ ] Email notifications
+- [ ] Advanced search
+- [ ] Activity feed
+- [ ] File attachments (beyond images)
+
+### Phase 3: Scale 📅
+- [ ] Redis caching
+- [ ] Rate limiting
+- [ ] Advanced analytics
+- [ ] Mobile app
+- [ ] API rate limiting
+- [ ] Audit logs
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open Pull Request
+
+---
+
+## 📄 License
+
+This project is for educational purposes.
+
+---
+
+## 🙏 Acknowledgments
+
+- [Next.js](https://nextjs.org/)
+- [shadcn/ui](https://ui.shadcn.com/)
+- [Prisma](https://www.prisma.io/)
+- [Hono](https://hono.dev/)
+- [AWS](https://aws.amazon.com/)
+
+---
+
+## 📞 Support
+
+- 📖 **Documentation**: Check `AWS_INTEGRATION.md` for AWS setup
+- 🐛 **Issues**: Open an issue on GitHub
+- 💬 **Discussions**: Use GitHub Discussions
+
+---
+
+**Built with ❤️ using Next.js and AWS**
