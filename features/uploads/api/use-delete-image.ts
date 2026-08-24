@@ -24,6 +24,7 @@ export const useDeleteImage = () => {
     },
     onSuccess: () => {
       toast.success('Image deleted successfully');
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['current-user'] });
       queryClient.invalidateQueries({ queryKey: ['projects'] });
     },

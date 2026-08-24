@@ -49,7 +49,8 @@ const app = new Hono()
       const user = c.get('user');
       const { key, type, entityId } = c.req.valid('json');
 
-      const url = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
+      // Use our proxy API instead of direct S3 URL
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/api/images/${key}`;
 
       if (type === 'profile') {
         // Delete old profile image if exists

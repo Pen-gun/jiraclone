@@ -59,6 +59,7 @@ export const useUploadImage = () => {
     },
     onSuccess: (data) => {
       toast.success('Image uploaded successfully');
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['current-user'] });
       queryClient.invalidateQueries({ queryKey: ['projects'] });
     },
