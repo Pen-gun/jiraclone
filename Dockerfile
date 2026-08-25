@@ -21,10 +21,16 @@ RUN npx tsc prisma.config.ts --module commonjs --moduleResolution node --esModul
 
 FROM base AS runner
 ENV NODE_ENV=production
+RUN apk add --no-cache openssl curl
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/generated/prisma ./generated/prisma
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
+COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
 COPY entrypoint.sh ./
 RUN chmod +x entrypoint.sh
 EXPOSE 3000
