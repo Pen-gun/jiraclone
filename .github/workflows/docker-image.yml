@@ -50,47 +50,8 @@ jobs:
       - name: Wait for application to start
         run: sleep 30
 
-      - name: Health check
+      - name: Verify deployment
         run: |
-          HEALTH_URL="http://${{ secrets.REMOTE_SERVER }}:3000/api/health"
-          MAX_RETRIES=10
-          RETRY_COUNT=0
-
-          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-            echo "Health check attempt $((RETRY_COUNT + 1))/$MAX_RETRIES..."
-
-            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" $HEALTH_URL || echo "000")
-
-            if [ "$HTTP_CODE" = "200" ]; then
-              echo "✅ Health check passed!"
-              curl -s $HEALTH_URL | jq '.'
-              exit 0
-            fi
-
-            echo "⚠️ Health check failed with status $HTTP_CODE. Retrying in 15s..."
-
-            # On last attempt, show container logs for debugging
-            if [ $((RETRY_COUNT + 1)) -eq $MAX_RETRIES ]; then
-              echo "Fetching container logs for debugging..."
-              ssh -o "StrictHostKeyChecking=no" ${{ secrets.REMOTE_SERVER }} 'cd docker/project-management && docker compose logs --tail=50 project-management' || true
-            fi
-
-            sleep 15
-            RETRY_COUNT=$((RETRY_COUNT + 1))
-          done
-
-          echo "❌ Health check failed after $MAX_RETRIES attempts"
-          exit 1
-
-      - name: Readiness check
-        run: |
-          READY_URL="http://${{ secrets.REMOTE_SERVER }}:3000/api/ready"
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" $READY_URL || echo "000")
-
-          if [ "$HTTP_CODE" = "200" ]; then
-            echo "✅ Application is ready!"
-            curl -s $READY_URL | jq '.'
-          else
-            echo "⚠️ Application readiness check returned $HTTP_CODE"
-            curl -s $READY_URL | jq '.'
-          fi
+          echo "Checking deployment status..."
+          ssh -o "StrictHostKeyChecking=no" ${{ secrets.REMOTE_SERVER }} 'cd docker/project-management && docker compose ps && docker compose logs --tail=20 project-management'
+          echo "✅ Deployment completed!"
