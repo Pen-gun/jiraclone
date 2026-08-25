@@ -35,7 +35,7 @@ COPY --from=builder /app/generated/prisma ./generated/prisma
 COPY --from=builder /app/prisma ./prisma
 
 # Install prisma CLI for migrations (small overhead but ensures it works)
-RUN pnpm add -g prisma@7.5.0
+RUN npm install -g prisma@7.5.0
 
 # Copy entrypoint script
 COPY entrypoint.sh ./
