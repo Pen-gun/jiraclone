@@ -48,12 +48,12 @@ jobs:
           EOF
 
       - name: Wait for application to start
-        run: sleep 15
+        run: sleep 30
 
       - name: Health check
         run: |
           HEALTH_URL="http://${{ secrets.REMOTE_SERVER }}:3000/api/health"
-          MAX_RETRIES=5
+          MAX_RETRIES=10
           RETRY_COUNT=0
 
           while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
@@ -67,8 +67,15 @@ jobs:
               exit 0
             fi
 
-            echo "⚠️ Health check failed with status $HTTP_CODE. Retrying in 10s..."
-            sleep 10
+            echo "⚠️ Health check failed with status $HTTP_CODE. Retrying in 15s..."
+
+            # On last attempt, show container logs for debugging
+            if [ $((RETRY_COUNT + 1)) -eq $MAX_RETRIES ]; then
+              echo "Fetching container logs for debugging..."
+              ssh -o "StrictHostKeyChecking=no" ${{ secrets.REMOTE_SERVER }} 'cd docker/project-management && docker compose logs --tail=50 project-management' || true
+            fi
+
+            sleep 15
             RETRY_COUNT=$((RETRY_COUNT + 1))
           done
 
