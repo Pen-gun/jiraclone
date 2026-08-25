@@ -31,12 +31,6 @@ COPY --from=builder /app/public ./public
 # Copy Prisma generated client
 COPY --from=builder /app/generated/prisma ./generated/prisma
 
-# Copy Prisma schema and config for migrations
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/prisma.config.js ./prisma.config.js
-
-# Install prisma CLI for migrations (small overhead but ensures it works)
-RUN npm install -g prisma@7.5.0
 
 # Copy entrypoint script
 COPY entrypoint.sh ./
