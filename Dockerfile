@@ -22,16 +22,24 @@ RUN npx tsc prisma.config.ts --module commonjs --moduleResolution node --esModul
 FROM base AS runner
 ENV NODE_ENV=production
 RUN apk add --no-cache openssl curl
+
+# Copy Next.js standalone build
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
+
+# Copy Prisma generated client
 COPY --from=builder /app/generated/prisma ./generated/prisma
+
+# Copy Prisma schema for migrations
 COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
+
+# Install prisma CLI for migrations (small overhead but ensures it works)
+RUN pnpm add -g prisma@7.5.0
+
+# Copy entrypoint script
 COPY entrypoint.sh ./
 RUN chmod +x entrypoint.sh
+
 EXPOSE 3000
 CMD ["./entrypoint.sh"]
